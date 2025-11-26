@@ -1,0 +1,46 @@
+digraph "" {
+	graph [d2tgraphstyle="every node/.style={draw}",
+		overlap=false
+	];
+	node [color=white,
+		shape=circle,
+		style=filled
+	];
+	1	[fillcolor="#eeeebb",
+		texlbl="$\begin{pmatrix}0 & 0 \\ 0 & 1\end{pmatrix}$"];
+	1 -> 1	[label="1, 2",
+		lblstyle="auto, sloped, black, draw = none"];
+	0	[fillcolor="#ffcccc",
+		texlbl="$\begin{pmatrix}0 & 0 \\ 0 & 0\end{pmatrix}$"];
+	1 -> 0	[color=blue,
+		label="0, 2",
+		lblstyle="auto, sloped, black, draw = none"];
+	5	[fillcolor="#eeeebb",
+		texlbl="$\begin{pmatrix}0 & 1 \\ 0 & 1\end{pmatrix}$"];
+	1 -> 5	[label="2, 1",
+		lblstyle="auto, sloped, black, draw = none"];
+	8	[fillcolor="#ccddaa",
+		texlbl="$\begin{pmatrix}1 & 0 \\ 0 & 0\end{pmatrix}$"];
+	1 -> 8	[label="1, 2",
+		lblstyle="auto, sloped, black, draw = none"];
+	9	[fillcolor="#bbccee",
+		texlbl="$\begin{pmatrix}1 & 0 \\ 0 & 1\end{pmatrix}$"];
+	1 -> 9	[label="2, 2",
+		lblstyle="auto, sloped, black, draw = none"];
+	10	[fillcolor="#ccddaa",
+		texlbl="$\begin{pmatrix}1 & 0 \\ 1 & 0\end{pmatrix}$"];
+	1 -> 10	[label="2, 1",
+		lblstyle="auto, sloped, black, draw = none"];
+	11	[fillcolor="#bbccee",
+		texlbl="$\begin{pmatrix}1 & 0 \\ 1 & 1\end{pmatrix}$"];
+	1 -> 11	[label="3, 1",
+		lblstyle="auto, sloped, black, draw = none"];
+	13	[fillcolor="#bbccee",
+		texlbl="$\begin{pmatrix}1 & 1 \\ 0 & 1\end{pmatrix}$"];
+	1 -> 13	[label="3, 1",
+		lblstyle="auto, sloped, black, draw = none"];
+	15	[fillcolor="#bbccee",
+		texlbl="$\begin{pmatrix}1 & 1 \\ 1 & 1\end{pmatrix}$"];
+	1 -> 15	[label="4, 0",
+		lblstyle="auto, sloped, black, draw = none"];
+}

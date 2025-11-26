@@ -1,0 +1,29 @@
+strict digraph "" {
+	graph [d2tgraphstyle="every node/.style={draw}",
+		overlap=false
+	];
+	node [color=white,
+		shape=circle,
+		style=filled
+	];
+	0	[fillcolor="#ffcccc",
+		texlbl="$\begin{pmatrix}0 & 0 \\ 0 & 0\end{pmatrix}$"];
+	1	[fillcolor="#ccddaa",
+		texlbl="$\begin{pmatrix}1 & 0 \\ 1 & 0\end{pmatrix}$"];
+	1 -> 0	[color=red,
+		lblstyle="auto, sloped, black, draw = none",
+		texlbl="2$\varepsilon$",
+		weight=2];
+	2	[fillcolor="#eeeebb",
+		texlbl="$\begin{pmatrix}0 & 1 \\ 0 & 1\end{pmatrix}$"];
+	2 -> 0	[color=red,
+		lblstyle="auto, sloped, black, draw = none",
+		texlbl="2$\varepsilon$",
+		weight=2];
+	3	[fillcolor="#bbccee",
+		texlbl="$\begin{pmatrix}1 & 1 \\ 1 & 1\end{pmatrix}$"];
+	3 -> 0	[color=red,
+		lblstyle="auto, sloped, black, draw = none",
+		texlbl="2$\varepsilon$",
+		weight=2];
+}
