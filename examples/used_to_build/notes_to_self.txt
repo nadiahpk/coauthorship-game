@@ -1,0 +1,27 @@
+
+
+then next, you need to count how many errors are needed to get to each alternative
+state to the deterministic one.
+Remember, you need to count errors from the deterministic destination (next_actions above),
+not from the starting point (prev_actions above)
+Use it to populate an epsilon-order matrix with zeros on the deterministic destination
+and values above 0 elsewhere
+
+
+
+
+
+# thoughts right now:
+# - within the calculation of long-term payoff with fixed strategies,
+#   I should be making "sensible" decisions like:
+#   - definitely co-author a paper if doing so gives a positive co-authorship component
+#   - definitely first-author a paper if doing so gives a
+#     positive first-authorship component
+# Only when faced with the possibility of not co-authoring should a player
+# then turn to their strategy rules (all-c, all-d, pavlov, etc.)
+#
+# If I include first-authoring as a strategy, then for a 3 player system,
+# I have 4096 possible actions all 3 could take. For a 2-player system, it's only 64,
+# so start there.
+# But I might be able to throw out a lot of the possibilities on the basis of
+# the epsilon order.

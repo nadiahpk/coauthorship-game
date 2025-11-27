@@ -1,0 +1,17 @@
+
+\begin{tikzpicture}[>=latex,line join=bevel,every node/.style={draw}]
+%%
+\definecolor{fillcolor}{rgb}{1.0,0.8,0.8};
+  \node (0) at (72.0bp,18.0bp) [draw=white,fill=fillcolor,circle] {$\begin{pmatrix}0 & 0 \\ 0 & 0\end{pmatrix}$};
+  \definecolor{fillcolor}{rgb}{0.8,0.87,0.67};
+  \node (1) at (18.0bp,90.0bp) [draw=white,fill=fillcolor,circle] {$\begin{pmatrix}1 & 0 \\ 1 & 0\end{pmatrix}$};
+  \definecolor{fillcolor}{rgb}{0.93,0.93,0.73};
+  \node (2) at (72.0bp,90.0bp) [draw=white,fill=fillcolor,circle] {$\begin{pmatrix}0 & 1 \\ 0 & 1\end{pmatrix}$};
+  \definecolor{fillcolor}{rgb}{0.73,0.8,0.93};
+  \node (3) at (126.0bp,90.0bp) [draw=white,fill=fillcolor,circle] {$\begin{pmatrix}1 & 1 \\ 1 & 1\end{pmatrix}$};
+  \draw [red,->] (1) ..controls (36.213bp,65.391bp) and (46.481bp,52.08bp)  .. node[auto, sloped, black, draw = none] {2$\varepsilon$} (0);
+  \draw [red,->] (2) ..controls (72.0bp,63.983bp) and (72.0bp,54.712bp)  .. node[auto, sloped, black, draw = none] {2$\varepsilon$} (0);
+  \draw [red,->] (3) ..controls (107.79bp,65.391bp) and (97.519bp,52.08bp)  .. node[auto, sloped, black, draw = none] {2$\varepsilon$} (0);
+%
+\end{tikzpicture}
+
