@@ -1,0 +1,116 @@
+# Steps I took
+
+1. run `calc_transitions_errors.py` to generate `transitions_errors_nbr_players_2.csv`
+1. run `calc_within_game_transitions.py` to get deterministic transition matrix
+1. ...
+1. `calc_numerical_introspection_stationary_distribution.py`
+1. ran `plot_limit_introspection_stationary_distribution.py`
+  - don't forget this produces nice figures you can use to explain the resultant introspection dynamics
+1. to get numerical result with finite delta, calc_numerical_introspection_stationary_distribution.py
+1. plot with `plot_numerical_introspection_stationary_distribution.py`
+
+# Issues
+
+Trying to run scripts/transitions_errors/calc_transitions_errors.py with even n = 3 is unworkable.
+That's ~250,000 possible transitions. Later: I had put the write command inside the loop.
+Also, hopefully, the parquet file will be faster.
+
+# Ideas 
+
+## Take advantage of symmetry between players or not? 
+
+The code in `example_1` takes advantage of the symmetry between players,
+but that's a little dangerous because I might later wisht o remove that assumption. 
+So maybe don't do that.
+
+## Method to remove parameters?
+
+I'm running `calc_within_game_transitions.py`, 
+and it occurs to me that the parameter values themselves are no longer used here. 
+All that's needed for the deterministic transitions is
+1. whether or not the next-action gains are positive
+  - if they are positive, then that authorship/coauthorship will happen
+1. the strategy, 
+  - if the next-action being considered does not have positive gains, 
+  it will be pursued or not pursued according to the strategy
+
+Then I'm looking at the `ID_2_actions` variable and the `action_gains_positive` variables,
+and it occurs to me there are repeated entries.
+
+```
+In [6]: ID_2_actions
+Out[6]:
+{
+  0: ((0, 0), (0, 0)),
+  1: ((0, 0), (0, 1)),
+  2: ((0, 0), (1, 0)),
+  3: ((0, 0), (1, 1)),
+  4: ((0, 1), (0, 0)),
+  5: ((0, 1), (0, 1)),
+  6: ((0, 1), (1, 0)),
+  7: ((0, 1), (1, 1)),
+  8: ((1, 0), (0, 0)),
+  9: ((1, 0), (0, 1)),
+  10: ((1, 0), (1, 0)),
+  11: ((1, 0), (1, 1)),
+  12: ((1, 1), (0, 0)),
+  13: ((1, 1), (0, 1)),
+  14: ((1, 1), (1, 0)),
+  15: ((1, 1), (1, 1))
+}
+
+In [7]: action_gains_positive
+Out[7]: 
+{
+  0: [[False, True], [True, False]],
+  1: [[False, True], [True, False]],
+  2: [[True, True], [True, False]],
+  3: [[True, True], [True, False]],
+  4: [[False, True], [True, True]],
+  5: [[False, True], [True, True]],
+  6: [[True, True], [True, True]],
+  7: [[True, True], [True, True]],
+  8: [[False, True], [True, False]],
+  9: [[False, True], [True, False]],
+  10: [[True, True], [True, False]],
+  11: [[True, True], [True, False]],
+  12: [[False, True], [True, True]],
+  13: [[False, True], [True, True]],
+  14: [[True, True], [True, True]],
+  15: [[True, True], [True, True]]
+}
+```
+
+
+At the very least,
+the next-action gain doesn't need to be repeated for a 0 and a 1
+
+```
+# for player 1, these two certainly identical
+  0: ((0, 0), (0, 0)), 0: [[False, True], [True, False]],
+  8: ((1, 0), (0, 0)), 8: [[False, True], [True, False]],
+
+# these also seem like they should be
+  4:  ((0, 1), (0, 0)),  4: [[False, True], [True, True]],
+  12: ((1, 1), (0, 0)), 12: [[False, True], [True, True]],
+
+# and that's generally true
+  1:  ((0, 0), (0, 1)), 1:  [[False, True], [True, False]],
+  5:  ((0, 1), (0, 1)), 5:  [[False, True], [True, True]],
+  9:  ((1, 0), (0, 1)), 9:  [[False, True], [True, False]],
+  13: ((1, 1), (0, 1)), 13: [[False, True], [True, True]],
+
+  2:  ((0, 0), (1, 0)), 2:  [[True, True], [True, False]],
+  6:  ((0, 1), (1, 0)), 6:  [[True, True], [True, True]],
+  10: ((1, 0), (1, 0)), 10: [[True, True], [True, False]],
+  14: ((1, 1), (1, 0)), 14: [[True, True], [True, True]],
+
+  3:  ((0, 0), (1, 1)), 3:  [[True, True], [True, False]],
+  7:  ((0, 1), (1, 1)), 7:  [[True, True], [True, True]],
+  11: ((1, 0), (1, 1)), 11: [[True, True], [True, False]],
+  15: ((1, 1), (1, 1)), 15: [[True, True], [True, True]]
+}
+```
+
+Evidently, there are some rules I could use to constrain the possible values in this,
+which means I could do an exhaustive search without the need to search the parameter space.
