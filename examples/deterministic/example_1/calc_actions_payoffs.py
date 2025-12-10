@@ -28,10 +28,6 @@ c_c = 0.8  # cost of co-authoring
 preferences = np.array([[0], [2]])
 assert len(preferences) == n
 
-# strategies used by each player
-fsauthor_strat = "never" # just do one for now
-valid_coauthor_strats = ["pavlov_c", "pavlov_d", "all_c", "all_d"]
-
 # store in the parameter-values function for this run
 params = {
     "nbr_players": n,

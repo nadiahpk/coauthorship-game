@@ -1,0 +1,1045 @@
+\documentclass[12pt]{article}
+
+% a font designed for accessibility
+\usepackage[default]{lato}
+\usepackage[T1]{fontenc}
+% \usepackage{newtxsf} if you want an aesthetic match on maths, but it doesn't help accessibility 
+
+\usepackage{amsmath,amsthm,amssymb,setspace,enumitem,epsfig,titlesec,verbatim,color,array,eurosym,multirow,blkarray,lscape,soul,graphicx,cite,comment,nicefrac,lineno,epstopdf,accents}
+\usepackage[bf,small]{caption}
+\usepackage[top=2cm,left=2cm,right=2cm,bottom=2cm]{geometry}
+\DeclareMathSizes{11.5}{20}{14}{10}   % For size 11 text
+\usepackage[super,sort&compress,comma]{natbib}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{assumption}{Assumption}
+
+% --- nadiah added
+\usepackage{parskip} % I just find it easier to read
+\usepackage{mathtools} % allows \coloneq
+\usepackage{annotate-equations} % so I can point to reasoning
+
+% tables
+\usepackage{tabulary} % auto word wrap
+\usepackage{booktabs} % toprule, midrule, bottomrule
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks   = true, %Colours links instead of ugly boxes
+    urlcolor     = blue, %Colour for external hyperlinks
+    linkcolor    = blue, %Colour of internal links
+    citecolor   = blue %Colour of citations
+}
+
+% nicer courier links
+\usepackage{microtype}
+\usepackage{xurl}
+
+% more break points:
+\newcommand{\ttpath}[1]{%
+  \begingroup
+  \catcode`\_=12
+  \path{#1}%
+  \endgroup
+}
+
+\usepackage{xcolor}
+\definecolor{maroon}{RGB}{153,0,51}
+\definecolor{darkgreen}{RGB}{0,100,0}
+\newcommand{\m}[0]{\color{maroon}}
+\newcommand{\g}[0]{\color{darkgreen}}
+
+\usepackage{caption}
+\captionsetup{font=footnotesize} % smaller captions
+
+% these two packages are needed for the shaded results
+\usepackage{amsthm}
+\usepackage{framed}
+
+% for table of contents for supplement only
+\usepackage{minitoc}
+\renewcommand{\ptctitle}{} % No title "Table of Contents" for the toc
+\renewcommand \thepart{} % Make the "Part I" text invisible
+\renewcommand \partname{}
+\usepackage[toc,page,header]{appendix}
+
+% shortcuts
+
+% preferred epsilon
+\newcommand{\eps}[0]{\varepsilon}
+
+% Iverson brackets
+\usepackage{bm}
+\newcommand{\liver}[0]{\bm{[}}
+\newcommand{\river}[0]{\bm{]}}
+
+% --- end nadiah added
+
+\title{Documentation of scripts used to build model}
+\author{Nadiah Kristensen}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% --- nadiah added
+% for shaded results
+\colorlet{shadecolor}{blue!3}
+%
+\newtheoremstyle{mystyle}%                % Name
+  {}%                                     % Space above
+  {}%                                     % Space below
+  {}%                                     % Body font (often italic)
+  {}%                                     % Indent amount
+  {\bfseries}%                            % Theorem head font
+  {.}%                                    % Punctuation after theorem head
+  { }%                                    % Space after theorem head, ' ', or \newline
+  {\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}% % Theorem head spec (can be left empty, meaning `normal')
+\theoremstyle{mystyle}
+%
+\newtheorem{res2}{Result}[section]
+\newenvironment{res}
+  {\begin{shaded}\begin{res2}}
+  {\end{res2}\end{shaded}}
+%
+\newtheorem{rmk2}{Remark}[section]
+\newenvironment{rmk}
+  {\begin{shaded}\begin{rmk2}}
+  {\end{rmk2}\end{shaded}}
+
+% for examples 
+\theoremstyle{definition}
+\newtheorem{examplex}{Example}
+\newenvironment{exmi}
+{\pushQED{\qed}\renewcommand{\qedsymbol}{$\triangleleft$}\examplex}
+{\popQED\endexamplex}
+\colorlet{shadecolor}{blue!3}
+\newenvironment{exm}
+{\begin{shaded}\begin{exmi}}
+{\end{exmi}\end{shaded}}
+
+% suppress table of contents in main part
+%\doparttoc % Tell to minitoc to generate a toc for the parts
+%\faketableofcontents % Run a fake tableofcontents command for the partocs
+%\part{} % Start the document part
+
+% --- end nadiah added
+
+
+This document refers to the contents of \ttpath{examples/deterministic/used_to_build/},
+which was used to build and check the formalisation of the model.
+
+\tableofcontents
+
+\clearpage
+\section{Generalise notation}
+
+Goal: single payoff function that can account for all variants of the model
+we've discussed, 
+including weighting of the first-author's contribution to paper's influence, 
+the option of the country not first-authoring any papers,
+and the option of co-authors receiving benefits from papers they didn't
+co-author.
+
+Consider a single round of the paper-authorship game.
+Players $i \in \{ 1, \ldots, n \}$
+each play the role of first-author and potential co-author on papers, 
+denoted with subscripts $_{(f)}$ and $_{(c)}$ respectively.
+Each player $j$ first-authors one paper with location $T_j$ in topic space,
+and every other player has the option of coauthoring the paper.
+
+Let $a_{i,j}$ be an indicator function
+such that $a_{i,j} = 1$ if player $i$ co-authors the paper first-authored by player $j$,
+and $a_{i,j} = 0$ otherwise, with $a_{i,i}=1$.
+The authorship decisions of player $i$ are vector 
+$\boldsymbol{a}_i = (a_{i,1}, a_{i,2}, \ldots, a_{i,n})$,
+and the authorship decisions of all players are a vector of vectors 
+$\boldsymbol{a} = (\boldsymbol{a}_1, \boldsymbol{a}_2, \ldots, \boldsymbol{a}_{n})$.
+
+Each player has a preference in topic space $p_i$.
+Define the alignment between player $i$'s preference
+and the paper first-authored by player $j$ as
+\begin{equation}
+    L(p_i, T_j) = \frac{1}{
+        1 + \eqnmarkbox[blue]{distance}{D(p_i, T_j)}
+    }
+\end{equation}
+\annotate[yshift=0em]{left, below}{distance}{distance between author $i$'s preference and topic proposed by $j$}
+
+
+\clearpage
+Consider the paper first-authored player $i$ on topic $T_i$.
+The influence the paper has is 
+proportional to the number of authors it has,
+and $b$ is its maximum influence
+\vspace{2em}
+\begin{equation}
+    B_i(\boldsymbol{a}) = \frac{
+        b (\eqnmarkbox[blue]{auth1}{w_f} + \eqnmarkbox[blue]{coauths}{\sum_{j \neq i} a_{j,i}})
+    }{ \eqnmarkbox[blue]{normN}{w_f + n - 1} },
+    \qquad B_i(\boldsymbol{a}) \in \left[ 0, b \right]
+\end{equation}
+\annotate[yshift=1em]{left, above}{auth1}{first author's weight}
+\annotate[yshift=1em]{right, above}{coauths}{coauthors}
+\annotate[yshift=0em]{right, below}{normN}{normalisation}
+
+The payoff the first author receives:
+\vspace{2em}
+\begin{equation}
+    \pi_i^{(f)} =  
+    a_{i,i} \left( 
+        \eqnmarkbox[blue]{gamma_ii}{\gamma_{i,i}} \; \eqnmarkbox[blue]{benefit_first_auth}{B_i(\boldsymbol{a}) \; L(p_i, T_i)}
+        - \eqnmarkbox[blue]{ca}{c_{i,i}} 
+    \right)
+    \label{eq:pi_f}
+\end{equation}
+\annotate[yshift=1em]{right, above}{ca}{costs of first-authoring}
+\annotate[yshift=1em]{left, above}{benefit_first_auth}{benefit = influence $\times$ alignment}
+\annotate[yshift=0em]{left, below}{gamma_ii}{placeholder (probably assume $\gamma_{i,i} = 1$)}
+
+In Eq.~\ref{eq:pi_f},
+I could have split the costs of first-authoring into a proposing and writing cost;
+however, that raises the possibility that a first-author might not even bother proposing,
+which adds another strategy.
+Considering this is a bit of a side issue,
+I figure we could just assume proposing is free.
+
+In the role of co-author,
+two possibilities:
+\begin{enumerate}
+    \item Excludable good: 
+    if co-authors do not receive benefits from papers they did not co-author:
+    \vspace{2em}
+    \begin{equation}
+        \pi_i^{(c)} = 
+        \sum_{j \neq i} 
+        a_{j,j} \; 
+        \eqnmarkbox[red]{aij}{a_{i,j}} 
+        \left( 
+            \eqnmarkbox[blue]{gamma}{\gamma_{i,j}} \; B_j(\boldsymbol{a}) \; L(p_i, T_j)
+            - \eqnmarkbox[blue]{cc}{c_{i,j}}
+        \right)
+        \label{eq:pi_c_1}
+    \end{equation}
+    \annotate[yshift=1em]{left, above}{aij}{1 if $i$ coauthors $j$'s paper; 0 otherwise}
+    \annotate[yshift=-1em]{right, below}{cc}{costs of coauthoring per paper}
+    \annotate[yshift=1em]{right, above}{gamma}{co-authorship benefit differs from first-authorship}
+
+    \item Non-excludable good: 
+    if co-authors do receive benefits from papers they did not co-author:
+    \vspace{2em}
+    \begin{equation}
+        \pi_i^{(c)} = 
+        \sum_{j \neq i} 
+        a_{j,j} \; 
+        \left( 
+            \gamma_{i,j} \; B_j(\boldsymbol{a}) \; L(p_i, T_j)
+            - 
+            \eqnmarkbox[red]{aij}{a_{i,j}} \; c_{i,j}
+        \right)
+        \label{eq:pi_c_2}
+    \end{equation}
+    \annotate[yshift=1em]{left, above}{aij}{1 if $i$ coauthors $j$'s paper; 0 otherwise}
+\end{enumerate}
+
+Could merge Eqs.~\ref{eq:pi_c_1} and \ref{eq:pi_c_2} with something like
+\vspace{2em}
+\begin{equation}
+    \pi_i^{(c)} = 
+    \sum_{j \neq i} 
+    a_{j,j} \; 
+    \left( 
+        \eqnmarkbox[blue]{X}{P(a_{i,j})} \;
+        \gamma_{i,j} \; B_j(\boldsymbol{a}) \; L(p_i, T_j)
+        - 
+        a_{i,j} \; c_{i,j}
+    \right)
+    \label{eq:pi_c}
+\end{equation}
+\annotate[yshift=1em]{right, above}{X}{Public-good indicator function}
+
+where the public-good indicator function:
+\begin{equation}
+    P(a_{i,j}) = 
+    \begin{cases}
+        1 & \text{ if papers are modelled as non-excludable public goods}, \\
+        a_{i,j} & \text{ otherwise}.
+    \end{cases}
+\end{equation}
+
+In a single round,
+the total payoff $i$ receives is the sum of payoffs from their roles
+as first-author and co-author
+\begin{equation}
+    \pi_i = \pi_i^{(f)} + \pi_i^{(c)} 
+    = \sum_{j=1}^n a_{j,j} \left(
+        P(a_{i,j}) \; \gamma_{i,j} \; B_j(\boldsymbol{a}) \; L(p_i, T_j) - a_{i,j} \; c_{i,j}
+    \right)
+\end{equation}
+
+\section{Deterministic transitions}
+
+\subsection{Model}
+
+This model examines how players 
+make rational decisions about authorship and co-authorship 
+based on cost-benefit analysis. 
+I propose a two-tier decision-making framework:
+\begin{enumerate}
+    \item {\bf Primary decision layer}: 
+    Authors first evaluate whether the direct benefits of first-authoring or co-authoring outweigh the costs.
+    \item {\bf Strategy implementation layer}: Only when direct benefits do not justify participation will authors implement their strategic policies 
+    (e.g., tit-for-tat, all-cooperate, etc.).
+\end{enumerate}
+
+This framework provides a realistic representation of publishing behaviour: 
+authors will always participate in papers with clear individual benefits, 
+and only engage strategic considerations for papers 
+where direct benefits alone are insufficient.
+
+To evaluate whether the direct benefits of authoring/co-authoring outweigh the costs,
+players calculate their unilateral switching gain, from non-authorship to authorship, 
+using the most recently implemented actions.
+
+\subsubsection{First-author primary decision layer}
+\label{first_author_primary}
+
+Let us denote by $\boldsymbol{A}_{(i,j) \mapsto v}$ the matrix obtained from $\boldsymbol{A}$ by replacing the element at position $(i,j)$ with value $v$
+\begin{equation*}
+    \boldsymbol{A}_{(i,j) \mapsto v} \coloneq (a'_{k,l}) \text{ where } a'_{k,l} = 
+    \begin{cases}
+        v & \text{if } (k,l) = (i,j) \\
+        a_{k,l} & \text{otherwise}
+    \end{cases}
+\end{equation*}
+
+Then the unilateral decision by Player $i$ to pursue authorship of paper $j$ 
+is represented by $\boldsymbol{A}_{(i,j) \mapsto 1}$, 
+and the decision to forego authorship by $\boldsymbol{A}_{(i,j) \mapsto 0}$.
+
+Consider Player $i$ contemplating 
+whether first-authorship in the next round would be worthwhile. 
+They calculate their switching gain using the most recent information
+
+\vspace{1em}
+\begin{align}
+    g_i^{(f)}(\eqnmarkbox[blue]{most_recent}{\boldsymbol{A}^{t}})
+    & = \eqnmarkbox[darkgreen]{if_had_fs}{\pi_i^{(f)}(
+            \boldsymbol{A}_{(i, i) \mapsto 1}^t
+        )}
+        - \eqnmarkbox[red]{if_had_not_fs}{\pi_i^{(f)}(
+            \boldsymbol{A}_{(i, i) \mapsto 0}^t
+        )}, \nonumber \\
+    &= \gamma_{i, i} \; B_i(\boldsymbol{A}^t) \; A_{i, i} - c_{i, i}
+\end{align}
+%note: should choose a new symbol for `alignment'
+\annotate[yshift=0em]{left, below}{most_recent}{most-recent information}
+\annotate[yshift=1em]{left, above}{if_had_fs}{payoff if $i$ had first-authored}
+\annotate[yshift=1em]{right, above}{if_had_not_fs}{payoff if $i$ had not first-authored}
+
+If Player $i$'s unilateral first-authorship switching gain is positive,
+then according to their internal calculations,
+the benefits of first-authoring outweigh the costs;
+therefore,
+they will first-author in the next round
+
+\vspace{3em}
+\begin{equation}
+    \eqnmarkbox[blue]{fs_worthwhile}{g_i^{(f)}(\boldsymbol{A}^{t}) > 0} 
+    \implies \eqnmarkbox[blue]{fs_yes}{a_{i, i}^{t+1} = 1} \; \forall i.
+\end{equation}
+\annotate[yshift=1em]{left, above}{fs_worthwhile}{first-authoring would have\\ \scriptsize been worthwhile last round}
+\annotate[yshift=1em]{right, above}{fs_yes}{first-author next round}
+
+However, if $g_i^{(f)}(\boldsymbol{A}^{t}) \leq 0$, 
+Player $i$ may nonetheless have other reasons for first-authoring, 
+and therefore $a_{i, i}^{t+1}$ is calculated according to their first-authoring strategy.
+
+\subsubsection{Action-matrix updates and memory}
+
+The model must account for situations where 
+potential first authors may choose not to publish in certain rounds. 
+This raises the question of how potential co-authors should update their actions 
+when no paper is published.
+The memory of past interactions is crucial for implementing conditional strategies.
+
+For updating co-authorship actions, 
+I implemented a memory-preserving approach:
+if a first author does not publish in a given round,
+then co-authors maintain their previous actions as `memories'
+
+\vspace{1em}
+\begin{equation}
+    \eqnmarkbox[blue]{fs_no}{a_{j,j}^{t+1} = 0} \implies \eqnmarkbox[blue]{co_memory}{a_{i,j}^{t+1} = a_{i,j}^{t}} \; \forall i \neq j.
+    \label{eq:coauthor_memory}
+\end{equation}
+\annotate[yshift=1em]{left, above}{fs_no}{first-author doesn't publish}
+\annotate[yshift=1em]{right, above}{co_memory}{co-author doesn't update action}
+
+Co-authors will only begin updating their actions again 
+when first authors begin publishing again.
+
+This approach, 
+where action updates only occur
+when actions are actually implemented,
+ensures that all players' decisions are visible to all other players 
+and can be incorporated into strategic calculations.
+For example,
+first authors can base their primary decision 
+(Sect.~\ref{first_author_primary})
+on the most recent actions of potential co-authors.
+
+\begin{exm}
+Consider a 2-player game where:
+both co-authors' strategies is to do the opposite of what they did last,
+Player 2 always first-authors,
+and  Player 1 stops first-authoring in the 3rd round and restarts in the 6th.
+The sequence of action matrices is shown below
+
+\vspace{1em}
+\begin{equation*}
+    \begin{pmatrix} 1 & 0 \\ 1 & 1 \\ \end{pmatrix}
+    \rightarrow
+    \begin{pmatrix} 1 & 1 \\ 0 & 1 \\ \end{pmatrix}
+    \rightarrow
+    \begin{pmatrix} \eqnmarkbox[red]{stop}{0} & 0 \\ \eqnmarkbox[gray]{fixed}{0} & 1 \\ \end{pmatrix}
+    \rightarrow
+    \begin{pmatrix} 0 & 1 \\ \eqnmarkbox[gray]{}{0} & 1 \\ \end{pmatrix}
+    \rightarrow
+    \begin{pmatrix} 0 & 0 \\ \eqnmarkbox[gray]{}{0} & 1 \\ \end{pmatrix}
+    \rightarrow
+    \begin{pmatrix} \eqnmarkbox[darkgreen]{restart}{1} & 1 \\ \eqnmarkbox[blue]{freed}{1} & 1 \\ \end{pmatrix}
+    \rightarrow
+    \begin{pmatrix} 1 & 0 \\ 0 & 1 \\ \end{pmatrix}
+    \rightarrow
+    \begin{pmatrix} 1 & 1 \\ 1 & 1 \\ \end{pmatrix}
+\end{equation*}
+\end{exm}
+\annotate[yshift=1em]{left, above}{stop}{first-authoring stops}
+\annotate[yshift=0em]{left, below}{fixed}{co-authorship memory fixed}
+\annotate[yshift=1em]{left, above}{restart}{first-authoring restarts}
+\annotate[yshift=0em]{left, below}{freed}{co-authorship updating restarts}
+
+
+\subsubsection{Co-author primary decision layer}
+
+Players will contemplate co-authoring papers with all other players,
+both those who are currently first-authoring
+(i.e., players $j$ such that $a_{j,j}^t = 1$) 
+and those who are not;
+however, they will only and implement their decisions and update their actions
+if the other player first-authors in the next round ($a_{j,j}^{t+1} = 1$). 
+If a potential first-author does not publish in the next round, 
+then the co-authors' cannot implement their decisions,
+and their actions do not update (Eq.~\ref{eq:coauthor_memory}).
+
+Consider Player $i$ contemplating whether co-authoring Player $j$'s paper would be worthwhile in the next round $t+1$. 
+They calculate their unilateral switching gain in a similar manner
+to first authors
+
+\vspace{1em}
+\begin{align}
+    g_{i, j}^{(c)}(\eqnmarkbox[blue]{most_recent}{\boldsymbol{A}^t})
+    & = \eqnmarkbox[darkgreen]{if_had_co}{\pi_i^{(c)}(
+            \boldsymbol{A}_{(i, j) \mapsto 1}^t
+        )}
+        - \eqnmarkbox[red]{if_had_not_co}{\pi_i^{(c)}(
+            \boldsymbol{A}_{(i, j) \mapsto 0}^t
+        )}, \nonumber \\
+    & = \gamma_{i, j} \; A_{i, j} \; 
+    \left\{
+        P(1) \; B_j(
+            \boldsymbol{A}_{(i, j) \mapsto 1}^t
+        )
+        - P(0) \; B_j(
+            \boldsymbol{A}_{(i, j) \mapsto 0}^t
+        )
+    \right\}
+    - c_{i, j}
+\end{align}
+\annotate[yshift=0em]{left, below}{most_recent}{most-recent information}
+\annotate[yshift=1em]{left, above}{if_had_co}{payoff if $i$ had co-authored $j$'s paper}
+\annotate[yshift=1em]{right, above}{if_had_not_co}{payoff if $i$ had not co-authored $j$'s paper}
+where
+\begin{equation*}
+        B_j(\boldsymbol{A}_{(i, j) \mapsto v}^t)
+        = \left( \frac{ b }{ w_f + n - 1 } \right)  
+        \left( w_f + v + \sum_{\substack{k \neq j \\ k \neq i}} a_{k, j}^t \right)
+\end{equation*}
+
+If $g_{i, j}^{(c)}(\boldsymbol{A}^{t}) > 0$, 
+then Player $i$ will be interested in co-authoring with Player $j$ in the next round;
+however,
+they will only do so if Player $j$ first-authors in the next round
+
+\vspace{2em}
+\begin{equation}
+    \eqnmarkbox[blue]{co_worthwhile}{g_{i,j}^{(c)}(\boldsymbol{A}^{t}) > 0}
+    \text{ and } \eqnmarkbox[darkgreen]{fs_yes}{a_{j, j}^{t+1} = 1} \implies \eqnmarkbox[blue]{co_yes}{a_{i, j}^{t+1} = 1}
+    \; \forall i.
+\end{equation}
+\annotate[yshift=1em]{left, above}{co_worthwhile}{co-authoring would have\\been worthwhile last round}
+\annotate[yshift=1em]{right, above}{co_yes}{co-author next round}
+\annotate[yshift=0em]{left, below}{fs_yes}{first-author is publishing}
+
+In the case where $a_{j, j}^{t+1} = 0$,
+the memory-preserving rule given in Eq.~\ref{eq:coauthor_memory} applies.
+
+Provided $a_{j, j}^{t+1} = 1$,
+similar to first-authors,
+if $g_{i, j}^{(c)}(\boldsymbol{A}^{t}) \leq 0$,
+then Player $i$ will make their co-authorship decision based on their co-authorship strategy (e.g., {\tt all-c}, {\tt all-d}, {\tt pavlov}, etc.).
+
+\subsubsection{Summary of primary decision rules}
+
+First author:
+\begin{equation}
+    a_{i,i}^{t+1} = 
+    \begin{cases}
+        1 & \text{if } g_i^{(f)}(\boldsymbol{A}^{t}) > 0, \\
+        \text{use strategy} & \text{otherwise}.
+    \end{cases}
+\end{equation}
+
+Co-author:
+\begin{equation}
+    a_{i,j}^{t+1} = 
+    \begin{cases}
+        a_{i,j}^t & \text{if } a_{j,j}^{t+1} = 0, \\
+        1 & \text{if } a_{j,j}^{t+1} = 1 \text{ and } 
+             g_{i,j}^{(c)}(\boldsymbol{A}^{t}) > 0,  \\
+        \text{use strategy} & \text{otherwise}.
+    \end{cases}
+\end{equation}
+
+\subsubsection{Strategy implementation layer}
+
+In the event where the direct benefits of authoring do not outweigh the costs,
+a player's authorship decision is made based on their strategic policy.
+
+For first authors, 
+I have implemented two simple strategies:
+\begin{enumerate}
+    \item {\tt always}: always first-author
+    \item {\tt never}: never first-author
+\end{enumerate}
+Note that first-authors with a `never first-author' policy will 
+still first-author in situations where the direct benefits outweigh the costs.
+If we are to focus on co-authorship decisions only,
+I would make `never first-author' the default.
+
+For co-authors,
+we have discussed both unconditional and conditional strategies.
+I have implemented the following unconditional co-authorship strategies:
+\begin{enumerate}
+    \item {\tt all-c}: always co-author
+    \item {\tt all-d}: never co-author.
+\end{enumerate}
+
+Conditional strategies like tit-for-tat or Pavlov are designed for situations
+where players can only either cooperate or defect in the previous round 
+--- there is no third option.
+Therefore,
+they do not apply to situations where 
+one or both players were forced to opt out because the other did not first-author
+in the previous round.
+In that case,
+players should have some fall-back strategy.
+This is particularly important for players pursuing a purely co-authorship-based 
+strategy and never first-authoring.
+
+I have implemented one reciprocal strategy with two fallback options
+(note: the rules below assume the non-focal player $j$ is first-authoring,
+$a_{j, j}^{t+1} = a_{j, j}^t = 1$)
+\begin{itemize}
+    \item {\tt pavlov-c}:
+    Player $i$ uses Pavlov strategy if they published last round;
+    otherwise, they always cooperate
+
+    \vspace{1em}
+    \begin{equation*}
+        a_{i,j}^{t+1} =
+        \begin{cases}
+            \eqnmarkbox[blue]{}{1} & 
+            \eqnmarkbox[blue]{pavlov}{
+                \text{if } a_{i, i}^t = 1 \text{ and } \big( (a_{i,j}^t, a_{j,i}^t) = (0, 0) 
+                \text{ or } (a_{i,j}^t, a_{j,i}^t) = (1, 1) \big)}, \\
+            \eqnmarkbox[blue]{}{0} & 
+            \eqnmarkbox[blue]{}{
+                \text{if } a_{i, i}^t = 1 \text{ and } \big( (a_{i,j}^t, a_{j,i}^t) = (0, 1) 
+                \text{ or } (a_{i,j}^t, a_{j,i}^t) = (1, 0) \big)}, \\
+            \eqnmarkbox[red]{fallback}{1} & \eqnmarkbox[red]{fallback-c}{\text{if } a_{i, i}^t = 0}.
+        \end{cases}
+    \end{equation*}
+    \annotate[yshift=1em]{left, above}{pavlov}{if $i$ first-authoring, $i$ uses Pavlov}
+    \annotate[yshift=0em]{right, below}{fallback-c}{if $i$ not first-authoring, $i$ always cooperates}
+    
+    \item {\tt pavlov-d}:
+    Player $i$ uses Pavlov strategy if they published last round;
+    otherwise, they always defect
+    \begin{equation*}
+        a_{i,j}^{t+1} =
+        \begin{cases}
+            1 & \text{if } a_{i, i}^t = 1 \text{ and } \big( (a_{i,j}^t, a_{j,i}^t) = (0, 0) 
+                \text{ or } (a_{i,j}^t, a_{j,i}^t) = (1, 1) \big), \\
+            0 & \text{if } a_{i, i}^t = 1 \text{ and } \big( (a_{i,j}^t, a_{j,i}^t) = (0, 1) 
+                \text{ or } (a_{i,j}^t, a_{j,i}^t) = (1, 0) \big), \\
+            0 & \text{if } a_{i, i}^t = 0.
+        \end{cases}
+    \end{equation*}
+\end{itemize}
+
+\subsection{Check implementation of deterministic transitions}
+
+To check the logic of the deterministic transitions was implemented correctly,
+I plotted the deterministic transitions between all action states in a two-player game
+(Fig.~\ref{f:check_determ}).
+I chose the parameter values such that 
+co-authors always had a negative unilateral switching gain,
+but first-authors had a positive unilateral switching gain with 1 co-author
+and a negative switching gain otherwise.
+All transition graphs generated matched my expectations.
+
+\begin{figure}[h]
+    \centering
+    \begin{tabular}{llll}
+        (a) {\tt always}, {\tt all-d} & 
+        (b) {\tt always}, {\tt all-c} & 
+        (c) {\tt always}, {\tt pavlov-d} & 
+        (d) {\tt always}, {\tt pavlov-c} \\
+        \includegraphics[width=0.22\textwidth]{../../examples/deterministic/used_to_build/eg_7_all_d_always.pdf} &
+        \includegraphics[width=0.22\textwidth]{../../examples/deterministic/used_to_build/eg_7_all_c_always.pdf} &
+        \includegraphics[width=0.22\textwidth]{../../examples/deterministic/used_to_build/eg_7_pavlov_d_always.pdf}&
+        \includegraphics[width=0.22\textwidth]{../../examples/deterministic/used_to_build/eg_7_pavlov_c_always.pdf}\\
+        \\
+        (e) {\tt never}, {\tt all-d} & 
+        (f) {\tt never}, {\tt all-c} & 
+        (g) {\tt never}, {\tt pavlov-d} & 
+        (h) {\tt never}, {\tt pavlov-c} \\
+        \includegraphics[width=0.22\textwidth]{../../examples/deterministic/used_to_build/eg_7_all_d_never.pdf}&
+        \includegraphics[width=0.22\textwidth]{../../examples/deterministic/used_to_build/eg_7_all_c_never.pdf}&
+        \includegraphics[width=0.22\textwidth]{../../examples/deterministic/used_to_build/eg_7_pavlov_d_never.pdf}&
+        \includegraphics[width=0.22\textwidth]{../../examples/deterministic/used_to_build/eg_7_pavlov_c_never.pdf}\\
+    \end{tabular}
+    \caption{
+        Deterministic transitions between states when all players pursue the same strategies.
+        Nodes represent an action-state $A$, which in this 2-player game is a $2 \times 2$ binary matrix,
+        and directed edges indicate how the actions of all players change at each round of the game.
+        Strategies in each panel are labelled: {\tt first-author, co-author}.
+    }
+    \label{f:check_determ}
+\end{figure}
+
+\clearpage
+\section{Transitions with implementation errors}
+
+\subsection{Model}
+
+To determine the long-term payoffs players receive 
+given their own and others' strategies,
+we take into account that players may make rare implementation errors.
+We modify the deterministic transition matrix $\boldsymbol{D}$ to 
+obtain a transition matrix $\boldsymbol{P}$ that accounts for errors,
+find $\boldsymbol{P}$'s stationary distribution,
+and calculate each player's payoffs at that expected distribution.
+
+\subsubsection{Permitted implementation-errors}
+\label{no_memory_errors}
+
+Consider a predecessor $\boldsymbol{A}_{p}$,
+its determistic successor $\boldsymbol{A}_{d}$ ($\boldsymbol{D}_{p, d} = 1$),
+and the ultimate successor $\boldsymbol{A}_{u}$ that is actually reached.
+The ultimate successor may differ from the deterministic successor due to implementation errors.
+Because implementation errors do not apply to co-authorship memories (i.e., memory-preserving assumption),
+then the set of ultimate successors is restricted to those whose co-authorship memories 
+match the memory or action in the predecessor.
+
+\begin{exm}
+Consider the following hypothetical transitions
+from predecessor $\boldsymbol{A}_{p}$ 
+with deterministic successor $\boldsymbol{A}_{d}$
+to ultimate successor $\boldsymbol{A}_{u}$.
+Because Player 1 in $\boldsymbol{A}_{u}$ is not first-authoring,
+the error transition below is not permitted (not-permitted co-authorship marked in red).
+\begin{equation*}
+\underbrace{\begin{pmatrix} 0 & 0 \\ 0 & 0 \\ \end{pmatrix}}_{\boldsymbol{A}_p}
+\rightarrow
+\underbrace{\begin{pmatrix} 1 & 1 \\ 1 & 1 \\ \end{pmatrix}}_{\boldsymbol{A}_d}
+\nrightarrow
+\underbrace{
+    \begin{pmatrix} 0 & 1 \\ \eqnmarkbox[red]{}{1} & 1 \\ \end{pmatrix}
+}_{\boldsymbol{A}_u}
+\qedhere
+\end{equation*}
+\end{exm}
+
+
+Specifically, 
+denote the set of all players who are not first-authoring 
+in the ultimate successor 
+by $\mathcal{J}_{\boldsymbol{A}_u}$
+\begin{equation*}
+    \mathcal{J}_{\boldsymbol{A}_u} = \left\{ j \in \mathcal{N} \mid (\boldsymbol{A}_{u})_{j, j} = 0 \right\}.
+\end{equation*}
+Then all elements $(\boldsymbol{A}_{u})_{i,j}$ with $i \neq j$ and $j \in \mathcal{J}_{\boldsymbol{A}_u}$ represent
+coauthorship memories.
+These memories must match the previous memory or co-authorship action in $\boldsymbol{A}_{p}$.
+Therefore,
+the ultimate successor must satisfy 
+\begin{equation*}
+    (\boldsymbol{A}_u)_{i, j} = (\boldsymbol{A}_p)_{i, j} 
+    \; \forall i \neq j,
+    \; \forall j \in \mathcal{J}_{\boldsymbol{A}_u}.
+\end{equation*}
+The condition $\forall i \neq j$ ensures that only coauthorship memories are constrained
+and not first-author actions; 
+first-author actions are free to change either deterministically or through error.
+Allowing first-author actions to change
+ensures that all non-publishing states can communicate with all other states.
+For example,
+a state with $(\boldsymbol{A}_p)_{j,j} = 0$ 
+and with a deterministic successor with $(\boldsymbol{A}_d)_{j, j} = 0$
+can still ultimately reach states with $(\boldsymbol{A}_u)_{j,j} = 1$ 
+by Player $j$ erroneously first-authoring 
+(e.g., Fig.~\ref{f:error_transitions_example}b).
+
+The number of co-authorship memories in successor $\boldsymbol{A}_{u}$
+is equal to the number of potential co-authors of players who are not first-authoring 
+\begin{equation*}
+    m_m = (n - 1) \sum_{j=1}^n \liver (\boldsymbol{A}_{u})_{j, j} = 0 \river,
+\end{equation*}
+where the bold square brackets are Iverson brackets 
+(i.e., if $Q$ is true, $\liver Q \river = 1$; otherwise $\liver Q \river = 0$).
+
+\begin{exm}
+Consider a 3-player game and Player 2's first-authorship status.
+Fig.~\ref{f:error_transitions_example}
+illustrates all possible transitions 
+from the predecessor to deterministic successor and ultimate successor states.
+For each transition,
+we consider how the second column of the action state changes
+(i.e., the first-authorship status of Player 2 and the statuses of its potential coauthors),
+and we count: 
+the number of co-authorship memories ($m_m$),
+the maximum number implementation errors possible,
+and the minimum number of correct implementations possible.
+
+\begin{minipage}[b]{0.48\textwidth}
+    \captionof{figure}{
+    The possible transitions in Player 2's first-authorship status
+    from the predecessor state to the deterministic successor and ultimate successor.
+    Each column represents the second column of the action state.
+    Player 2 has two potential co-authors,
+    and situations where their co-authorship status has the potential to change 
+    are highlighted by different colours.
+    \label{f:error_transitions_example}
+    }
+\end{minipage}
+\hfill
+\begin{minipage}[b]{0.5\textwidth}
+\includegraphics[width=0.9\textwidth]{figures/error_transitions.pdf}
+\end{minipage}
+\end{exm}
+
+\clearpage
+\subsubsection{Transition probabilities}
+
+The probability of transitioning from $\boldsymbol{A}_{p}$
+to the ultimate successor $\boldsymbol{A}_{u}$
+instead of the determistic successor $\boldsymbol{A}_{d}$ is a function of the 
+number of errors that separate $\boldsymbol{A}_{u}$ from $\boldsymbol{A}_{d}$.
+Specifically,
+if $\eps$ is the probability of a single implementation error,
+$m_e$ is the number of implementation errors,
+and $m_c$ is the number of correct implementations,
+then the probability of transition 
+from $\boldsymbol{A}_{p}$ to $\boldsymbol{A}_{u}$ is
+\begin{equation}
+    \mathbb{P}[\boldsymbol{A}^{t+1} = \boldsymbol{A}_u 
+        \mid \boldsymbol{A}^t = \boldsymbol{A}_p; \boldsymbol{A}_d] 
+    = (1 - \eps)^{m_c} \; \eps^{m_e}.
+    \label{P_pe}
+\end{equation}
+Note that the implementation-error calculation in Eq.~\ref{P_pe} does not count memory states
+because memory states are not actions implemented.
+In particular, 
+memory states (which do not change) 
+do not count towards the number of actions correctly implemented $m_c$.
+
+\begin{exm}
+Consider the hypothetical transitions below,
+from predecessor $\boldsymbol{A}_{p}$ 
+with deterministic successor $\boldsymbol{A}_{d}$
+to ultimate successor $\boldsymbol{A}_{u}$.
+Errors are marked in red, correct implementations in blue,
+and memories in grey.
+\begin{equation*}
+\underbrace{\begin{pmatrix} 0 & 0 \\ 0 & 1 \\ \end{pmatrix}}_{\boldsymbol{A}_p}
+\rightarrow
+\underbrace{\begin{pmatrix} 0 & 0 \\ 0 & 0 \\ \end{pmatrix}}_{\boldsymbol{A}_d}
+\rightarrow
+\underbrace{
+    \begin{pmatrix} \eqnmarkbox[red]{}{1} & \eqnmarkbox[gray]{}{0} \\ \eqnmarkbox[red]{}{1} & \eqnmarkbox[blue]{}{0} \\ \end{pmatrix}
+}_{\boldsymbol{A}_u}
+\qedhere
+\end{equation*}
+
+\end{exm}
+
+The number of errors is the sum of implementation errors committed by first authors
+and co-authors
+\begin{equation}
+    m_e(\boldsymbol{A}_{p}, \boldsymbol{A}_{d}, \boldsymbol{A}_{u}) = 
+    m_e^{(f)}(\boldsymbol{A}_{d}, \boldsymbol{A}_{u}) +
+    m_e^{(c)}(\boldsymbol{A}_{p}, \boldsymbol{A}_{d}, \boldsymbol{A}_{u}),
+\end{equation}
+where number of errors committed by first authors is
+\begin{equation}
+    m_e^{(f)}(\boldsymbol{A}_{d}, \boldsymbol{A}_{u}) =
+    \sum_{j = 1}^n \liver (\boldsymbol{A}_{u})_{j, j} \neq (\boldsymbol{A}_{d})_{j, j} \river,
+    %   nbr_fs_errors = sum(
+    %       ult_fsaction != det_fsaction
+    %       for ult_fsaction, det_fsaction in zip(ult_fsactionV, det_fsactionV)
+    %   )
+\end{equation}
+and the number of errors by committed co-authors is
+\begin{equation}
+    m_e^{(c)}(\boldsymbol{A}_{p}, \boldsymbol{A}_{d}, \boldsymbol{A}_{u}) =
+    \sum_{j \in \mathcal{N} \setminus \mathcal{J}_{\boldsymbol{A}_u}}
+    \sum_{i = 1}^n \liver (\boldsymbol{A}_{u})_{i, j} \neq (\boldsymbol{A}_{d})_{i, j} \river.
+    %   # indices where first author is authoring
+    %   fs1_idxs = [idx for idx, fsaction in enumerate(ult_fsactionV) if fsaction == 1]
+    %
+    %   # count only those rows (co-authorship relationships)
+    %   nbr_co_errors = sum(
+    %       sum(
+    %           ult_coaction != det_coaction
+    %           for ult_coaction, det_coaction in zip(ult_coactionsV[fs1_idx], det_coactionsV[fs1_idx])
+    %       )
+    %       for fs1_idx in fs1_idxs
+    %   )
+\end{equation}
+The number of correct implementations is
+\begin{equation}
+    m_c(\boldsymbol{A}_{p}, \boldsymbol{A}_{d}, \boldsymbol{A}_{u}) = 
+    n + \underbrace{(n - 1) \; \lvert \mathcal{N} \setminus \mathcal{J}_{\boldsymbol{A}_u} \rvert}_{\substack{\text{nbr. co-author actions}\\\text{implemented}}} 
+    - m_e(\boldsymbol{A}_{p}, \boldsymbol{A}_{d}, \boldsymbol{A}_{u}).
+    % nbr_correctM[pre_ID][ult_ID] = n + len(fs1_idxs) * (n - 1) - nbr_errors
+\end{equation}
+
+The transition probabilities are encoded in a transition matrix
+\begin{equation}
+    \boldsymbol{P}_{p, u} = \mathbb{P}[\boldsymbol{A}^{t+1} = \boldsymbol{A}_u 
+        \mid \boldsymbol{A}^t = \boldsymbol{A}_p; \boldsymbol{A}_d] 
+\end{equation}
+
+\clearpage
+\begin{exm}
+    Consider the predecessor and deterministic successor
+    \begin{equation*}
+        \boldsymbol{A}_p = 
+        \begin{pmatrix}
+            0 & 0 \\
+            0 & 1 \\
+        \end{pmatrix}
+        \text{ and }
+        \boldsymbol{A}_d = 
+        \begin{pmatrix}
+            0 & 0 \\
+            0 & 0 \\
+        \end{pmatrix}.
+    \end{equation*}
+    The diagram below illustrates all of possible ultimate successors, $\boldsymbol{A}_u$,
+    with the edge labels indicating the number of errors and correct actions, 
+    ($m_e, m_c$), respectively
+    \begin{center}
+        \includegraphics[width=0.4\textwidth]{../../examples/deterministic/used_to_build/eg_10_from_1.pdf}
+    \end{center}
+    The probability of transition from $\boldsymbol{A}_p$ to each $\boldsymbol{A}_u$
+    can be calculated by counting the number of errors committed by first authors,
+    and then the number of errors committed by co-authors given the first-author errors.
+    
+    \begin{center}
+    \includegraphics[width=\textwidth]{figures/eg_10_from_1_prob_tree.pdf}
+    \end{center}
+
+    After the first-author-errors stage,
+    co-author actions of non-publishing first-authors are constrained to match
+    their values in the predecessor (Sect.~\ref{no_memory_errors}),
+    whereas co-author actions of publishing first-authors may take any value.
+    The latter are marked $-$ in the first-author errors stage,
+    and their possible outcomes realised in the row below.
+
+    One can verify that the product of errors along each path from
+    from $\boldsymbol{A}_p$ to each $\boldsymbol{A}_u$ matches 
+    Eq.~\ref{P_pe} with the $m_e$ and $m_c$ values given in the earlier diagram.
+\end{exm}
+
+\subsubsection{Stationary distribution}
+
+Index the possible action states $\boldsymbol{A}_i$ for $i \in \{ 1, \ldots, 2^{n^2} \}$.
+We are interested in calculating the stationary distribution
+\begin{equation}
+    \boldsymbol{v} = \boldsymbol{v} \; \boldsymbol{P},
+    \label{v=vP_main}
+\end{equation}
+where $\boldsymbol{v} = (v_1, \ldots, v_{2^{n^2}})$
+and each $v_i$ is the long-term expected time spent in action state $\boldsymbol{A}_i$.
+
+A typical approach to calculating $\boldsymbol{v}$ is to set $\eps$ to some arbitrarily
+small number and then solve for $\boldsymbol{v}$ numerically (eigenvector).
+However,
+it is possible to obtain an analytic solution for $\eps \rightarrow 0$.
+
+To obtain the analytic stationary distribution,
+I used the Python module SymPy to encode $\boldsymbol{P}$ symbolically
+and then solved Eq.~\ref{v=vP_main}.
+The example in 
+\href{https://nadiah.org/2025/11/18/analytic-stationary}{this blog post}
+illustrates how the solution is found.
+In short,
+first we choose a maximum $\eps$ order to consider,
+and write $\boldsymbol{v}$ as a polynomial in $\eps$ to that order.
+Then we match same-$\eps$-order terms Eq.~\ref{v=vP_main},
+and attempt to solve for the $\eps^0$ coefficients (solving a system of linear equations).
+If the solution cannot be found,
+the maximum $\eps$ order is increased until the solution is found.
+
+\clearpage
+\subsection{Check implementation of transitions with errors}
+
+\subsubsection{Check counts of errors}
+
+Fig.~\ref{f:eg_10_from} shows the results of the $m_e$ and $m_c$ calculations
+for an arbitrary sampling of scenarios.
+The values match my expectations.
+
+\begin{figure}[h]
+    \centering
+    % pre_IDs = [0, 1, 2, 4, 7, 9, 10, 14, 15]
+    \begin{tabular}{lll}
+        (a) & (b) & (c) \\
+        \includegraphics[width=0.27\textwidth]{../../examples/deterministic/used_to_build/eg_10_from_0.pdf} &
+        \includegraphics[width=0.27\textwidth]{../../examples/deterministic/used_to_build/eg_10_from_1.pdf} &
+        \includegraphics[width=0.27\textwidth]{../../examples/deterministic/used_to_build/eg_10_from_2.pdf} \\
+        (d) & (e) & (f) \\
+        \includegraphics[width=0.27\textwidth]{../../examples/deterministic/used_to_build/eg_10_from_4.pdf} &
+        \includegraphics[width=0.27\textwidth]{../../examples/deterministic/used_to_build/eg_10_from_7.pdf} &
+        \includegraphics[width=0.27\textwidth]{../../examples/deterministic/used_to_build/eg_10_from_9.pdf} \\
+        (g) & (h) & (i) \\
+        \includegraphics[width=0.27\textwidth]{../../examples/deterministic/used_to_build/eg_10_from_10.pdf} &
+        \includegraphics[width=0.27\textwidth]{../../examples/deterministic/used_to_build/eg_10_from_14.pdf} &
+        \includegraphics[width=0.27\textwidth]{../../examples/deterministic/used_to_build/eg_10_from_15.pdf} \\
+    \end{tabular}
+    \caption{
+        Transitions from selected predecessors (central node) to valid ultimate successors (outer nodes)
+        and the number of erroneous and correct implementations between them (edge labels).
+        The transition to the deterministic successor is highlighted in blue,
+        and the edge labels indicate the number of errors and correct actions ($m_e, m_c$), respectively.
+    }
+    \label{f:eg_10_from}
+\end{figure}
+
+\clearpage
+\subsubsection{Check stationary distributions}
+
+{\bf Check 1: co-authors use {\tt pavlov-c}, first authors use {\tt never}}
+
+Using the analytic approach,
+I found the solution to the stationary distribution at order $\eps^1$,
+and the 
+stationary distribution distribution was a single state with probability 1:
+$((0, 0), (0, 0))$.
+
+To verify this was correct,
+I took the deterministic transition diagram
+(Fig.~\ref{f:eg_12_pavlov-c_never}a)
+and created an implementation-errors transition diagram by including
+all transitions of order
+$\eps^1$ (Fig.~\ref{f:eg_12_pavlov-c_never}b).
+The deterministic dynamics revealed three absorbing states;
+however,
+when transitions caused by single-action errors are included
+(red edges, Fig.~\ref{f:eg_12_pavlov-c_never}b),
+it is evident from inspection that $((0, 0), (0, 0))$ is indeed the stationary state.
+
+\begin{figure}[h]
+    \centering
+    \begin{tabular}{ll}
+        (a) & (b) \\
+        \includegraphics[width=0.40\textwidth]{../../examples/deterministic/used_to_build/eg_7_pavlov_c_never.pdf}&
+        \includegraphics[width=0.55\textwidth]{../../examples/deterministic/used_to_build/eg_12_with_errors.pdf}\\
+    \end{tabular}
+    \caption{
+        Dyanmics when co-authors use {\tt pavlov-c} and first authors use {\tt never},
+        (a) the deterministic dynamics,
+        and (b) the dynamics with implementation errors included (red edges)
+        For simplicity, 
+        only single-action errors 
+        that transition the game between different basins of attraction
+        are shown.
+    }
+    \label{f:eg_12_pavlov-c_never}
+\end{figure}
+
+\clearpage
+{\bf Check 2: co-authors use {\tt all-c}, first authors use {\tt never}}
+
+Using the analytic approach,
+I found the solution to the stationary distribution at order $\eps^1$,
+and the 
+stationary distribution distribution was a single state with probability 1:
+$((0, 0), (0, 0))$.
+I verified that it was correct
+by drawing the transition diagram with the $\eps^1$ errors included
+(Fig.~\ref{f:eg_13_all-c_never}b).
+
+\begin{figure}[h]
+    \centering
+    \begin{tabular}{ll}
+        (a) & (b) \\
+        \includegraphics[width=0.42\textwidth]{../../examples/deterministic/used_to_build/eg_7_all_c_never.pdf} &
+        \includegraphics[width=0.4\textwidth]{../../examples/deterministic/used_to_build/eg_13_with_errors.pdf}\\
+    \end{tabular}
+    \caption{
+        Dynamics when co-authors use {\tt all-c} and first authors use {\tt never},
+        (a) the deterministic dynamics,
+        and (b) the dynamics with implementation errors included (red edges).
+        For simplicity, 
+        only single-action errors 
+        that transition the game between different basins of attraction
+        are shown.
+    }
+    \label{f:eg_13_all-c_never}
+\end{figure}
+
+\end{document}
+% -------------------------------------------------------------------------------------
+
+\clearpage
+\appendix
+%
+\setcounter{page}{1}
+\renewcommand{\thepage}{S\arabic{page}}
+\setcounter{secnumdepth}{3}
+\setcounter{equation}{0}
+\setcounter{section}{0}
+\setcounter{table}{0}
+\setcounter{figure}{0}
+\renewcommand{\thesection}{S\arabic{section}}
+\renewcommand{\theequation}{S\arabic{equation}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thetable}{S\arabic{table}}
+%
+\addcontentsline{toc}{section}{Appendix} % Add the appendix text to the document TOC
+\part{} % Start the appendix part
+%
+\begin{center} {\bf \Large Supplementary Information} \end{center}
+\parttoc
+

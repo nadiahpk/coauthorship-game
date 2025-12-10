@@ -1,0 +1,541 @@
+\documentclass[12pt]{article}
+
+% a font designed for accessibility
+% \usepackage[default]{sourcesanspro} 
+\usepackage[default]{lato}
+% \usepackage[default]{cabin}
+% \usepackage{newtxsf} % if you want an aesthetic match on maths
+
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath,amsthm,amssymb,setspace,enumitem,epsfig,titlesec,verbatim,color,array,eurosym,multirow,blkarray,lscape,soul,graphicx,cite,comment,nicefrac,lineno,epstopdf,accents}
+\usepackage[bf,small]{caption}
+\usepackage[top=2cm,left=2cm,right=2cm,bottom=2cm]{geometry}
+\usepackage[super,sort&compress,comma]{natbib}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{assumption}{Assumption}
+
+% --- nadiah added
+\usepackage{parskip} % I just find it easier to read
+\usepackage{mathtools} % allows \coloneq
+\usepackage{annotate-equations} % so I can point to reasoning
+
+% tables
+\usepackage{tabulary} % auto word wrap
+\usepackage{booktabs} % toprule, midrule, bottomrule
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks   = true, %Colours links instead of ugly boxes
+    urlcolor     = blue, %Colour for external hyperlinks
+    linkcolor    = blue, %Colour of internal links
+    citecolor   = blue %Colour of citations
+}
+
+% nicer courier links
+\usepackage{microtype}
+\usepackage{xurl}
+\usepackage{inconsolata}
+
+% more break points:
+\newcommand{\ttpath}[1]{%
+  \begingroup
+  \catcode`\_=12
+  \path{#1}%
+  \endgroup
+}
+
+\usepackage{xcolor}
+\definecolor{maroon}{RGB}{153,0,51}
+\definecolor{darkgreen}{RGB}{0,100,0}
+\newcommand{\m}[0]{\color{maroon}}
+\newcommand{\g}[0]{\color{darkgreen}}
+
+\usepackage{caption}
+\captionsetup{font=footnotesize} % smaller captions
+
+% these two packages are needed for the shaded results
+\usepackage{amsthm}
+\usepackage{framed}
+
+% nicer code snippets
+% ---
+\usepackage{listings}
+\lstset{
+    % language=Python,
+    showspaces=false,
+    basicstyle=\small\tt,
+    keywordstyle=\color{blue},
+    commentstyle=\color{darkgreen},
+    stringstyle=\color{darkgreen},
+    breaklines=true,
+    backgroundcolor=\color{yellow!5},
+    framextopmargin=1pt, % these are needed to put a bit of space above and below code snippet
+    framexbottommargin=1pt, 
+    frame=tb, 
+    framerule=0pt,
+}
+
+
+
+% for table of contents for supplement only
+\usepackage{minitoc}
+\renewcommand{\ptctitle}{} % No title "Table of Contents" for the toc
+\renewcommand \thepart{} % Make the "Part I" text invisible
+\renewcommand \partname{}
+\usepackage[toc,page,header]{appendix}
+
+% shortcuts
+
+% preferred epsilon
+\newcommand{\eps}[0]{\varepsilon}
+
+% Iverson brackets
+\usepackage{bm}
+\newcommand{\liver}[0]{\bm{[}}
+\newcommand{\river}[0]{\bm{]}}
+
+% --- end nadiah added
+
+\title{Worked example (Example 1)}
+\author{Nadiah Kristensen}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% --- nadiah added
+% for shaded results
+\colorlet{shadecolor}{blue!3}
+%
+\newtheoremstyle{mystyle}%                % Name
+  {}%                                     % Space above
+  {}%                                     % Space below
+  {}%                                     % Body font (often italic)
+  {}%                                     % Indent amount
+  {\bfseries}%                            % Theorem head font
+  {.}%                                    % Punctuation after theorem head
+  { }%                                    % Space after theorem head, ' ', or \newline
+  {\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}% % Theorem head spec (can be left empty, meaning `normal')
+\theoremstyle{mystyle}
+%
+\newtheorem{res2}{Result}[section]
+\newenvironment{res}
+  {\begin{shaded}\begin{res2}}
+  {\end{res2}\end{shaded}}
+%
+\newtheorem{rmk2}{Remark}[section]
+\newenvironment{rmk}
+  {\begin{shaded}\begin{rmk2}}
+  {\end{rmk2}\end{shaded}}
+
+% for examples 
+\theoremstyle{definition}
+\newtheorem{examplex}{Example}
+\newenvironment{exmi}
+{\pushQED{\qed}\renewcommand{\qedsymbol}{$\triangleleft$}\examplex}
+{\popQED\endexamplex}
+\colorlet{shadecolor}{blue!3}
+\newenvironment{exm}
+{\begin{shaded}\begin{exmi}}
+{\end{exmi}\end{shaded}}
+
+% --- end nadiah added
+
+This document refers to the contents of \ttpath{examples/deterministic/example_1/},
+which contains a worked example of solving the introspection dynamics for a 2-player game.
+
+%\part{} % Start the document part
+%\parttoc
+\tableofcontents
+
+\clearpage
+\section{Scenario used for this example}
+
+The scenario modelled is a two-player game with parameter values chosen such:
+the players are symmetric,
+it is always in the players' self-interest to first-author,
+it is not in the players' self-interest to coauthor.
+The payoff structure for the coauthorship decision is a Prisoner's Dilemma.
+
+For the introspection dynamics, 
+I assume that both players will never first-author against their self-interest 
+(first-author strategy "\ttpath{never}"),
+and therefore only the dynamics of co-authorship strategies are considered.
+The space of possible co-authorship strategies considered is:
+\ttpath{pavlov_c}, \ttpath{pavlov_d}, \ttpath{all_c}, and \ttpath{all_d}.
+
+\section{Identify permitted action-state transitions and count implementation errors}
+\label{S:identify_permitted_action_state_transitions}
+
+As described in 
+\ttpath{docs/deterministic/used_to_build.pdf},
+when considering within-game transitions between action states with implementation errors,
+certain transitions between the deterministic and ultimate action-states 
+$A_d \rightarrow A_u$ are permitted and others are not.
+For permitted transitions,
+the number of errors required to perform the transition is the input into the 
+calculation for the probability of that transition occurring,
+which in turn is used to calculate the within-game stationary distribution.
+
+Which transitions are permitted and the number of errors required for the transition 
+is independent of the parameters of the model apart from the number of players $n$.
+Therefore,
+a script was written to pre-identify permitted transitions and calculate their number of implementation errors.
+
+The script \ttpath{scripts/deterministic/calc_transitions_errors.py}
+produces a \ttpath{.parquet} file for the two-player game,
+\ttpath{results/deterministic/transitions_errors_nbr_players_2.parquet}.
+The first few rows of the file are shown below:
+\begin{lstlisting}
+from_state, to_state, is_valid, nbr_errors, nbr_correct
+         0,        0,     True,          0,           2
+         1,        0,     True,          1,           1
+         2,        0,    False,          0,           2
+         3,        0,    False,          1,           1
+         4,        0,    False,          0,           2
+         5,        0,    False,          1,           1
+         6,        0,    False,          0,           2
+...
+\end{lstlisting}
+
+\clearpage
+\section{Calculate payoffs to each player in each action state}
+
+The script \ttpath{examples/deterministic/example_1/calc_actions_payoffs.py} 
+was used to calculate the payoffs to each player in each possible action-pair state.
+
+Key steps include specifying the game parameters:
+\begin{lstlisting}[language=Python]
+# game parameters
+n = 2  # number of players
+b = 2  # maximum benefit of a paper
+c_f = 0.9  # cost of first-authoring
+c_c = 0.8  # cost of co-authoring
+
+# topic preferences
+preferences = np.array([[0], [2]])
+assert len(preferences) == n
+\end{lstlisting}
+
+Getting every 2-player action state
+(makes use of \ttpath{functions/model_fncs.py} imported as \ttpath{mf}):
+\begin{lstlisting}[language=Python]
+ID_2_actions = mf.get_ID_2_actions(n)
+\end{lstlisting}
+
+Calculating payoffs:
+\begin{lstlisting}[language=Python]
+topics = mf.topics_fnc(params)
+paysV = [mf.calc_pays(params, ID_2_actions[ID], topics) for ID in IDs]
+\end{lstlisting}
+
+\section{Caclulate within-game deterministic transitions between action states}
+
+Across the rounds of the iterated game,
+the strategy of each player determines their action in the next round,
+which is based on the actions taken in the previous round. 
+The previous-round actions considered include both their own actions 
+as well as those of the the other players.
+Therefore,
+each possible strategy pairing results in a deterministic dynamic
+of transitions between different action states.
+
+The script \ttpath{examples/deterministic/example_1/calc_within_game_deterministic_transitions.py}
+calculates the deterministic transitions between action states 
+for every pairing of co-authorship strategies.
+For each coauthor-strategy pair,
+the calculation is a two-step process,
+as described in \ttpath{docs/deterministic/used_to_build.pdf}.
+
+First,
+decisions are made based on self-interest.
+The self-interested actions are those with a positive action gain 
+(calculated assuming we are moving from non-authorship $a_{i,j} = 0$
+to authorship $a_{i,j} = 1$).
+In \ttpath{calc_within_game_deterministic_transitions.py},
+the positive action gains are identified with
+\begin{lstlisting}[language=Python]
+action_gains_positive = mf.calc_action_gains_positive(params, ID_2_actions, gammas, alignments)
+\end{lstlisting}
+
+\ttpath{action_gains_positive} is an input into 
+the function \ttpath{calc_deterministic_transitions()},
+which calculates the deterministic transitions matrix 
+\begin{lstlisting}[language=Python]
+deterministic_transitions_matrix = mf.calc_deterministic_transitions(
+    params, actions_2_ID, action_gains_positive, fsauthor_strats, coauthor_strats
+)
+\end{lstlisting}
+
+The function \ttpath{calc_deterministic_transitions()} is found in 
+\ttpath{functions/model_fncs.py},
+where the two steps can be seen.
+For both first-author and coauthor decisions,
+first one determines if the action is in the player's self-interest.
+If it is not,
+then the first-author or coauthor strategy is used to determine the next action.
+
+The script
+\ttpath{examples/deterministic/example_1/plot_all_within_game_deterministic_transitions.py}
+prints graphs of the action transitions for coauthor-strategy pairs.
+All graphs can be found in PDF files named
+\ttpath{examples/deterministic/example_1/within_game_deterministic_transitions_{strategy_1}_Vs_{strategy_2}.pdf},
+and two selected examples are shown in Fig.~\ref{f:within_game_deterministic_transitions}.
+
+\begin{figure}[h]
+  \centering
+  \begin{tabular}{lll}
+    (a) \ttpath{pavlov_d}, \ttpath{pavlov_d} & 
+    (b) \ttpath{pavlov_d}, \ttpath{all_d} & 
+    (c) \ttpath{pavlov_d}, \ttpath{all_c} \\
+    \includegraphics[width=0.3\textwidth]{../../examples/deterministic/example_1/within_game_deterministic_transitions_pavlov_d_Vs_pavlov_d.pdf} &
+    \includegraphics[width=0.3\textwidth]{../../examples/deterministic/example_1/within_game_deterministic_transitions_pavlov_d_Vs_all_d.pdf} &
+    \includegraphics[width=0.3\textwidth]{../../examples/deterministic/example_1/within_game_deterministic_transitions_pavlov_d_Vs_all_c.pdf} \\
+  \end{tabular}
+  \caption{
+    Deterministic transitions between action states selected pairs of strategies. 
+    Nodes represent an action-state $A$, which in this 2-player game is a $2 \times 2$ binary matrix,
+    and directed edges indicate how the actions of all players change at each round of the game.
+  }
+  \label{f:within_game_deterministic_transitions}
+\end{figure}
+
+When a player pursuing a Pavlov coauthorship strategy is paired with another Pavlov player,
+they will settle into a state of mutually coauthorship
+(Fig.~\ref{f:within_game_deterministic_transitions}a),
+whereas a pairing with a player who never coauthors results in the Pavlov player switching 
+between coauthoring and defecting
+(Fig.~\ref{f:within_game_deterministic_transitions}b).
+Some within-game dynamics have more than one attractor, 
+e.g., the pairing of a Pavlov player with a player who always coauthors
+(Fig.~\ref{f:within_game_deterministic_transitions}c).
+In situations with more than one attractor,
+a stationary distribution cannot be found without an additional assumption, 
+such as by introducing a small implementation-error (below).
+
+\section{Calculate within-game stationary distribution of action states (analytic solution)}
+
+The script 
+\ttpath{examples/deterministic/example_1/calc_within_game_stationary_distributions.py}
+calculates 
+the stationary distribution of action states 
+using the method described \href{https://nadiah.org/2025/11/18/analytic-stationary}{this blog post}.
+For each strategy pairing,
+first,
+the transition matrix with implementation-error terms $\eps$ is generated
+\begin{lstlisting}[language=Python]
+# get the transition matrix with error terms included (symbolic entries a fnc of eps)
+P, eps = mf.symbolic_transitions_with_errors(pre_2_det, fname_error_count)
+\end{lstlisting}
+Then the analytic stationary distribution as $\eps \rightarrow 0$ is calculated
+\begin{lstlisting}[language=Python]
+# find the stationary distribution as eps -> 0
+stationary_distn_sp, pwr_level = mf.find_stationary_distribution(P, eps)
+\end{lstlisting}
+
+The function \ttpath{symbolic_transitions_with_errors()}
+\ttpath{functions/model_fncs.py} uses the symbolic mathematics toolbox SymPy
+to construct the transition matrix with $\eps$ terms.
+The key input needed is the \ttpath{transition_errors_file_name},
+which in this example is the file
+\ttpath{results/deterministic/transitions_errors_nbr_players_2.parquet}
+described in Sect.~\ref{S:identify_permitted_action_state_transitions}.
+
+The function \ttpath{find_stationary_distribution()} takes the symbolic matrix 
+\ttpath{P} and the symbolic variable \ttpath{eps}
+to construct the simultaneous equations and solve them.
+The details of the solution are found 
+\href{https://nadiah.org/2025/11/18/analytic-stationary}{in the blog post}.
+
+The stationary distributions are stored in the parquet file 
+\ttpath{examples/deterministic/example_1/within_game_stationary_distribution.parquet}.
+The first few rows of the 3rd to 6th columns of the file are shown below:
+\begin{lstlisting}
+pavlov_c pavlov_c [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1] [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+pavlov_c pavlov_d [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1] [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+pavlov_c all_c	  [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 2] [1 1 1 1 1 1 1 1 1 1 1 3 1 1 1 3]
+\end{lstlisting}
+The first two columns shown are the Player 1 and Player 2 coauthorship strategies,
+respectively,
+and the last two columns are lists of the the numerators and denominators 
+of the stationary probabilities. 
+List indices correspond to action-states indices.
+The analytic stationary distribution always returns rational probabilities,
+so the stationary probabilities can be stored without loss of accuracy.
+
+Note that the script
+\ttpath{calc_within_game_stationary_distributions.py}
+uses this method for every strategy-pair scenario,
+including those with a deterministic dynamics with only one attractor.
+It is likely that it would be more computationally efficient 
+to identify single-attractor cases and use another method to find their attractors. 
+
+\section{Calculate longterm expected payoffs}
+
+For each strategy pairing,
+the expected payoff to each player is calculated by 
+summing the products of their payoff in each action state 
+by their probability of being in that action state.
+The script 
+\ttpath{examples/deterministic/example_1/calc_within_game_stationary_payoffs.py}
+performs this calculation.
+
+\section{Calculate introspection dynamics stationary distribution}
+
+To determine how players' strategies evolve over time,
+an introspection-dynamics model is used.
+The introspection dynamics are also modelled as Markov chain,
+so the complete model
+layers a Markov chain describing the transitions between players'
+strategies on top of the Markov chain describing the within-game transitions 
+between action states.
+
+Denote the longterm expected payoff to player $i$ when $i$ plays strategy $x$ and 
+$j$ plays strategy $y$ as $\pi_i(\{s_{i,x}, s_{j,y} \})$.
+Only one player can update their strategy at a time;
+therefore, 
+only transitions 
+$\{s_{i,x}, s_{j,y} \} \rightarrow \{s_{i,z}, s_{j,y} \}$
+are permitted.
+Then the probability that player $i$ switches their strategy from $x$ to $z$ 
+($x \neq z$) is
+\begin{equation}
+  \mathbb{P}[ \{s_{i,x}, s_{j,y} \} \rightarrow \{s_{i,z}, s_{j,y} \}] 
+  = \left(\frac{1}{2} \right) \left(\frac{1}{m_i-1} \right) 
+  \rho \left( \{s_{i,x}, s_{j,y} \}, \{s_{i,z}, s_{j,y} \} \right)
+  \label{e:prob_transition}
+\end{equation}
+where $1/2$ is the probability that player $i$ is chosen to update their strategy,
+$m_i-1$ is the number of alternative stragies from among which $i$ chose $z$ as the comparison strategy,
+and $\rho()$ is the probability $i$ switches from $x$ to $z$ given that $i$ and $z$ were chosen.
+
+$\rho()$ is a function of the difference in long-term expected payoffs between the two strategies
+\begin{equation*}
+  \rho \left( \{s_{i,x}, s_{j,y} \}, \{s_{i,z}, s_{j,y} \} \right)
+  = \frac{1}{
+    1 + \exp(
+      -\delta \left[
+        \pi_i(\{s_{i,z}, s_{j,y} \}) - \pi_i(\{s_{i,x}, s_{j,y} \})
+      \right]
+    )
+  }
+  \label{e:rho}
+\end{equation*}
+where $\delta$ is the introspection strength.
+
+The transition matrix describing the introspection dynamics is populated with 
+$\mathbb{P}[ \{s_{i,x}, s_{j,y} \} \rightarrow \{s_{i,z}, s_{j,y} \}]$.
+
+\subsection{As introspection strength approaches infinity}
+
+The script \ttpath{scripts/deterministic/plot_limit_introspection_stationary_distribution.py}
+plots graphs of the introspection dynamics in the limit $\delta \rightarrow \infty$.
+As $\delta \rightarrow \infty$,
+the function $\rho()$ simplifies to
+\begin{equation*}
+  \rho \left( \{s_{i,x}, s_{j,y} \}, \{s_{i,z}, s_{j,y} \} \right) =
+  \begin{cases}
+    0 & \text{if } \pi_i(\{s_{i,z}, s_{j,y} \}) < \pi_i(\{s_{i,x}, s_{j,y} \}) \\
+    \frac{1}{2} & \text{if } \pi_i(\{s_{i,z}, s_{j,y} \}) = \pi_i(\{s_{i,x}, s_{j,y} \}) \\
+    1 & \text{if } \pi_i(\{s_{i,z}, s_{j,y} \}) > \pi_i(\{s_{i,x}, s_{j,y} \}) 
+  \end{cases}
+\end{equation*}
+
+The dynamics has two attractors (Fig.~\ref{f:limit_introspection_stationary_distribution}):
+a strategy pair playing \ttpath{all_d}, \ttpath{all_d};
+and drift between combinations of \ttpath{pavlov_c} and \ttpath{pavlov_d}.
+
+\begin{figure}[h]
+  \centering
+  \begin{tabular}{ll}
+    (a) strategy-pair transition graph & 
+    (b) condensation graph of transition graph \\
+    \includegraphics[width=0.45\textwidth]{../../examples/deterministic/example_1/limit_introspection_stationary_distribution.pdf} &
+    \includegraphics[width=0.45\textwidth]{../../examples/deterministic/example_1/limit_introspection_stationary_distribution_condensation.pdf} \\
+  \end{tabular}
+  \caption{
+    Graphs summarising the introspection dynamics when introspection strength $\delta \rightarrow \infty$.
+    (a) Transitions between strategy pairs. 
+    Strongly connected components are indicated by nodes with matching colours.
+    (b) The condensation graph of the transition graph in panel (a).
+  }
+  \label{f:limit_introspection_stationary_distribution}
+\end{figure}
+
+\subsection{For finite introspection strength}
+
+The script \ttpath{scripts/deterministic/calc_numerical_introspection_stationary_distribution.py}
+calculates the stationary distribution of the introspection dynamics for a range of 
+finite $\delta$ values.
+
+The first step is to identify the permissible transitions between strategy-pair states.
+Then for each permissible transition,
+the probability that the transition occurs is calculated using Eq.~\ref{e:prob_transition}
+\begin{lstlisting}[language=python]
+mat[old_mat_idx, new_mat_idx] = (1 / 2) * (1 / (nbr_strats - 1)) * \
+        prob_transition_given_comparison_pair(delta, focal_idx, old_pays, new_pays)
+\end{lstlisting}
+where the function \ttpath{prob_transition_given_comparison_pair()} implements Eq.~\ref{e:rho}
+\begin{lstlisting}[language=python]
+def prob_transition_given_comparison_pair(delta, focal_idx, old_pays, new_pays):
+    return 1 / (1 + np.exp(-delta * (new_pays[focal_idx] - old_pays[focal_idx])))
+\end{lstlisting}
+
+\clearpage
+The script
+\ttpath{scripts/deterministic/plot_numerical_introspection_stationary_distribution.py}
+plots the results from 
+\ttpath{calc_numerical_introspection_stationary_distribution.py}
+(Fig.~\ref{f:numerical_introspection_stationary_distribution}).
+Although (\ttpath{all_d}, \ttpath{all_d}) is an attractor when $\delta \rightarrow \infty$
+(Fig.~\ref{f:limit_introspection_stationary_distribution}),
+the stationary distribution in the limit appears to be 
+drift between combinations of \ttpath{pavlov_c} and \ttpath{pavlov_d}
+(Fig.~\ref{f:numerical_introspection_stationary_distribution}).
+
+\begin{figure}[h]
+  \begin{minipage}[b]{0.35\textwidth}
+    \caption{
+      The stationary distribution of strategy-pair probabilities in the introspection dynamics 
+      as a function of introspection strength.
+    } 
+    \label{f:numerical_introspection_stationary_distribution}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.60\textwidth}
+    \includegraphics[width=\textwidth]{../../examples/deterministic/example_1/numerical_introspection_stationary_distribution.pdf}
+  \end{minipage}
+\end{figure}
+
+
+\end{document}
+% -------------------------------------------------------------------------------------
+
+\clearpage
+\appendix
+%
+\setcounter{page}{1}
+\renewcommand{\thepage}{S\arabic{page}}
+\setcounter{secnumdepth}{3}
+\setcounter{equation}{0}
+\setcounter{section}{0}
+\setcounter{table}{0}
+\setcounter{figure}{0}
+\renewcommand{\thesection}{S\arabic{section}}
+\renewcommand{\theequation}{S\arabic{equation}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thetable}{S\arabic{table}}
+%
+\addcontentsline{toc}{section}{Appendix} % Add the appendix text to the document TOC
+\part{} % Start the appendix part
+%
+\begin{center} {\bf \Large Supplementary Information} \end{center}
+\parttoc
