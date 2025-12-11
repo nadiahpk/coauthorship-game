@@ -1,0 +1,18 @@
+// Latex files
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.maf
+*.mtc
+*.mtc0
+*.ptc1
+*.ptc2
+*.pyg
