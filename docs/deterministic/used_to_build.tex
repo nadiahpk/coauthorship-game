@@ -336,7 +336,7 @@ They calculate their switching gain using the most recent information
         - \eqnmarkbox[red]{if_had_not_fs}{\pi_i^{(f)}(
             \boldsymbol{A}_{(i, i) \mapsto 0}^t
         )}, \nonumber \\
-    &= \gamma_{i, i} \; B_i(\boldsymbol{A}^t) \; A_{i, i} - c_{i, i}
+    &= \gamma_{i, i} \; B_i(\boldsymbol{A}^t) \; L(p_i, T_i) - c_{i, i}
 \end{align}
 %note: should choose a new symbol for `alignment'
 \annotate[yshift=0em]{left, below}{most_recent}{most-recent information}
@@ -452,7 +452,7 @@ to first authors
         - \eqnmarkbox[red]{if_had_not_co}{\pi_i^{(c)}(
             \boldsymbol{A}_{(i, j) \mapsto 0}^t
         )}, \nonumber \\
-    & = \gamma_{i, j} \; A_{i, j} \; L(p_i, T_j) \;
+    & = \gamma_{i, j} \; L(p_i, T_j) \;
     \left\{
         P(1) \; B_j(
             \boldsymbol{A}_{(i, j) \mapsto 1}^t
