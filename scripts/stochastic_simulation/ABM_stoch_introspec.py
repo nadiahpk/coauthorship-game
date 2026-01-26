@@ -1,0 +1,161 @@
+import numpy as np
+import itertools
+import random
+import matplotlib.pyplot as plt
+
+# Game payoffs
+U1 = {
+    (1,1): 3, (1,0): 0,
+    (0,1): 5, (0,0): 1
+}
+
+U2 = {
+    (1,1): 3, (0,1): 0,
+    (1,0): 5, (0,0): 1
+}
+
+#### Strategies
+strategies = {
+    "ALLC": np.array([1, 1, 1, 1]),
+    "ALLD": np.array([0, 0, 0, 0]),
+    "PAVLOV": np.array([1, 0, 1, 0])
+}
+
+# introspection strength
+delta = 2.0  
+
+# Game States
+states = [(1,1), (1,0), (0,1), (0,0)]  # CC, CD, DC, DD
+state_index = {s: i for i, s in enumerate(states)}
+
+# Starting Strategies of both players
+p1_strat = strategies["ALLD"]
+p2_strat = strategies["ALLC"]
+
+def checkstrat ():
+    ### Compares strategies between two current players
+
+    global p1_strat, p2_strat, strategies
+    available_strats = list(strategies.keys())
+
+    # pick learner
+    learner = random.choice([1,2])
+    # based on who is testing strat, determine pi_r and pi_l
+    if learner == 1:
+        other = 2
+        learner_strat = p1_strat
+        rolemodel_name = random.choice([s for s in available_strats if not np.array_equal(strategies[s], learner_strat)])
+        rolemodel_strat = strategies[rolemodel_name]
+        pi_r = markov_matrix(rolemodel_strat, p2_strat)
+        pi_l = markov_matrix(p1_strat, p2_strat)
+    else:
+        other = 1
+        learner_strat = p2_strat
+        rolemodel_name = random.choice([s for s in available_strats if not np.array_equal(strategies[s], learner_strat)])
+        rolemodel_strat = strategies[rolemodel_name]
+        pi_r = markov_matrix(p1_strat, rolemodel_strat)
+        pi_l = markov_matrix(p1_strat, p2_strat)
+
+    # compute stationary distributions
+    v_r = stationary_distribution(pi_r)
+    v_l = stationary_distribution(pi_l)
+
+    # expected payoffs
+    payoff_r = sum(v_r[i] * U1[states[i]] if learner == 1 else v_r[i] * U2[states[i]] for i in range(4))
+    payoff_l = sum(v_l[i] * U1[states[i]] if learner == 1 else v_l[i] * U2[states[i]] for i in range(4))
+
+    # probability to switch
+    p_switch = 1 / (1 + np.exp(-delta * (payoff_r - payoff_l)))
+    if np.random.rand() < p_switch:
+        if learner == 1:
+            p1_strat = rolemodel_strat
+        else:
+            p2_strat = rolemodel_strat
+
+
+    ## This function:
+    # learner = pick randomly p1 or 2 and holds the current strat they doing
+    # rolemodel = a new, randomly picked, strat that is not the learners strat (out of the available strats)
+    # otherp = the strat and actions of the other player that was not picked
+    # pi_r = the transition matrix of rolemodel strategy IF the chosen player played role model with other players current strat
+    # pi_l = the transition matrix of learner strategy IF chosen player continues learner strat with other players current strat
+    # Payoff_r = v*A (where v is the eigenvector of pi_r)
+    # Payoff_l = v*A (where v is the eigenvector of pi_l)
+    # compute p_l = 1/(1+e^(-delta(pi_r-pi_l)))
+    # if probability of p_l is bad then change strat of learner player to rolemodel strat
+
+
+    return p1_strat, p2_strat
+
+def stationary_distribution(M):
+    eigvals, eigvecs = np.linalg.eig(M.T)
+    v = np.real(eigvecs[:, np.isclose(eigvals, 1)])
+    v = v[:,0]
+    return v / v.sum()
+
+### Build transition matrix from strategies
+def markov_matrix(p1, p2):
+    M = np.zeros((4,4))
+
+    for i, (a1_prev, a2_prev) in enumerate(states):
+        p1c = p1[i] # prob p1 cooperates given previous round
+        p2c = p2[i] # prob p2 cooperates given previous round
+
+        M[i, state_index[(1,1)]] = p1c * p2c
+        M[i, state_index[(1,0)]] = p1c * (1 - p2c)
+        M[i, state_index[(0,1)]] = (1 - p1c) * p2c
+        M[i, state_index[(0,0)]] = (1 - p1c) * (1 - p2c)
+
+    return M
+
+
+
+def play_game(rounds, epsilon=0.0):
+    global p1_strat, p2_strat
+    a1, a2 = 1, 1  # start CC
+    history_states = []
+    # To record action history
+    p1_history = []
+    p2_history = []
+    # To record strategy history
+    p1_strat_hist = []
+    p2_strat_hist = []
+
+    for t in range(rounds):
+        
+
+        # choose actions
+        i = state_index[(a1, a2)]
+        a1_goal = p1_strat[i]
+        a2_goal = p2_strat[i]
+
+
+        # implementation error? // NEED TO CHECK
+        a1 = 1 - a1_goal if np.random.rand() < epsilon else a1_goal
+        a2 = 1 - a2_goal if np.random.rand() < epsilon else a2_goal
+
+        p1_history.append(a1)
+        p2_history.append(a2)
+
+        # record current strategies
+        p1_strat_hist.append(p1_strat.copy())
+        p2_strat_hist.append(p2_strat.copy())
+
+        # Randomly decide to check strat around 1/3 of the time
+        revision_draw = np.random.rand()
+        if revision_draw < 1/3: # MADE IT A 1/3 FOR NOW BUT NEED DISCUSSION ON THIS
+            p1_strat, p2_strat = checkstrat()
+
+    return p1_history, p2_history, p1_strat_hist, p2_strat_hist
+
+
+p1_hist, p2_hist, _, _ = play_game(rounds=500)
+
+plt.plot(p1_hist, label="P1 actions")
+plt.plot(p2_hist, label="P2 actions")
+plt.xlabel("Round")
+plt.ylabel("Action (1=C, 0=D)")
+plt.legend()
+plt.title("Actions over time")
+plt.show()
+
