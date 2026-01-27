@@ -18,7 +18,7 @@ U2 = {
 strategies = {
     "ALLC": np.array([1, 1, 1, 1]),
     "ALLD": np.array([0, 0, 0, 0]),
-    "PAVLOV": np.array([1, 0, 1, 0])
+    "PAVLOV": np.array([1, 0, 0, 1]) # pavlov c and d the same in this context
 }
 
 # introspection strength
@@ -66,7 +66,7 @@ def checkstrat ():
 
     # probability to switch
     p_switch = 1 / (1 + np.exp(-delta * (payoff_r - payoff_l)))
-    if np.random.rand() < p_switch:
+    if np.random.rand() < p_switch: # check range for rand num
         if learner == 1:
             p1_strat = rolemodel_strat
         else:
@@ -82,7 +82,7 @@ def checkstrat ():
     # Payoff_r = v*A (where v is the eigenvector of pi_r)
     # Payoff_l = v*A (where v is the eigenvector of pi_l)
     # compute p_l = 1/(1+e^(-delta(pi_r-pi_l)))
-    # if probability of p_l is bad then change strat of learner player to rolemodel strat
+    # if probability of p_l is less than random number 0-1, then change strat of learner player to rolemodel strat
 
 
     return p1_strat, p2_strat
@@ -110,9 +110,9 @@ def markov_matrix(p1, p2):
 
 
 
-def play_game(rounds, epsilon=0.0):
+def play_game(rounds, epsilon=0.0): # play around with epsilon try 0.01
     global p1_strat, p2_strat
-    a1, a2 = 1, 1  # start CC
+    a1, a2 = 1, 1  # start CC (try 16 combos or try random a couple of times)
     history_states = []
     # To record action history
     p1_history = []
@@ -143,7 +143,7 @@ def play_game(rounds, epsilon=0.0):
 
         # Randomly decide to check strat around 1/3 of the time
         revision_draw = np.random.rand()
-        if revision_draw < 1/3: # MADE IT A 1/3 FOR NOW BUT NEED DISCUSSION ON THIS
+        if revision_draw < 1/3: # SHOULD BE INTROSPECTING EVERY GAME
             p1_strat, p2_strat = checkstrat()
 
     return p1_history, p2_history, p1_strat_hist, p2_strat_hist
@@ -159,3 +159,12 @@ plt.legend()
 plt.title("Actions over time")
 plt.show()
 
+
+### TO DO
+# Plot change in strats over games (strat distribution) - 3 graphs (epsilon, delta constant; testing epsilon, testing deltas)
+# find equilibrium time (no. of games to stabilise) slice that time and check for introspection strenght and probabilities
+# Should be introspecting every time
+# Test for different values of epsilon in implementation error
+# Try running the game with different start values (either randomly or 16 combinations)
+# Check random range for checking p_switch
+# Check pavlov state
