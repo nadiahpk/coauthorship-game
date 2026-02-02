@@ -3,7 +3,7 @@ import itertools
 import random
 import matplotlib.pyplot as plt
 
-'''# Game payoffs
+'''# Game payoffs (asymmetric with classic prisoner dilemma payoffs)
 U1 = {
     (1,1): 3, (1,0): 0,
     (0,1): 5, (0,0): 1
@@ -14,7 +14,7 @@ U2 = {
     (1,0): 5, (0,0): 1
 }'''
 
-# Game payoffs
+# Game payoffs (symmetric with slightly different payoff proportions)
 U1 = {
     (1,1): 5, (1,0): 1,
     (0,1): 4, (0,0): 2
