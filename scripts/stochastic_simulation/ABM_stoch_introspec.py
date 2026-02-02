@@ -3,18 +3,18 @@ import itertools
 import random
 import matplotlib.pyplot as plt
 
-'''# Game payoffs (asymmetric with classic prisoner dilemma payoffs)
+# Game payoffs (asymmetric with classic prisoner dilemma payoffs)
 U1 = {
-    (1,1): 3, (1,0): 0,
+    (1,1): 4, (1,0): 0,
     (0,1): 5, (0,0): 1
 }
 
 U2 = {
-    (1,1): 3, (0,1): 0,
+    (1,1): 4, (0,1): 0,
     (1,0): 5, (0,0): 1
-}'''
+}
 
-# Game payoffs (symmetric with slightly different payoff proportions)
+'''# Game payoffs (symmetric with slightly different payoff proportions)
 U1 = {
     (1,1): 5, (1,0): 1,
     (0,1): 4, (0,0): 2
@@ -23,7 +23,7 @@ U1 = {
 U2 = {
     (1,1): 5, (0,1): 4,
     (1,0): 1, (0,0): 2
-}
+}'''
 
 
 #### Strategies
@@ -40,9 +40,6 @@ def strat_name_from_vec(vec):
 joint_strats = list(itertools.product(strategies.keys(), repeat=2))
 joint_index = {js: i for i, js in enumerate(joint_strats)}
 
-
-# introspection strength
-delta = 2.0  
 
 # Game States
 states = [(1,1), (1,0), (0,1), (0,0)]  # CC, CD, DC, DD
@@ -149,7 +146,7 @@ def markov_matrix(p1, p2):
 
 
 
-def play_game(rounds, epsilon):
+def play_game(rounds, epsilon, delta):
     global p1_strat, p2_strat
     a1, a2 = 1, 1  # start CC (try 16 combos or try random a couple of times)
     history_states = []
@@ -201,7 +198,10 @@ def play_game(rounds, epsilon):
     return (p1_history,p2_history,p1_strat_hist,p2_strat_hist,np.array(prob_dist_stratpairs))
 
 
-'''p1_hist, p2_hist, _, _, _ = play_game(rounds=500)
+deltas = [0.5, 2.0, 5.0, 10]
+
+
+'''p1_hist, p2_hist, _, _, _ = play_game(rounds=500, epsilon=0.01, delta = 2)
 
 plt.plot(p1_hist, label="P1 actions")
 plt.plot(p2_hist, label="P2 actions")
@@ -211,13 +211,14 @@ plt.legend()
 plt.title("Actions over time")
 plt.show()'''
 
-(
+
+'''(
     p1_hist,
     p2_hist,
     _,
     _,
     prob_dist
-) = play_game(rounds=10000, epsilon=0.01)
+) = play_game(rounds=10000, epsilon=0.01, delta=2)
 
 t_eq = equilibrium_time(prob_dist, eps=0.0003, min_t=1000, persistence=100) # from eyesight 0.0004 seems the best error value
 print(f"Learning equilibrium reached at round t = {t_eq}")
@@ -231,8 +232,47 @@ plt.ylabel("Probability")
 plt.title("Joint strategy probability distribution over gameplay")
 plt.legend(ncol=3, fontsize=8)
 plt.tight_layout()
-plt.show()
+plt.show()'''
 
+
+results = {}
+
+for delta in deltas:
+    (
+        p1_hist,
+        p2_hist,
+        _,
+        _,
+        prob_dist
+    ) = play_game(rounds=10000, epsilon=0.01, delta=delta)
+
+    t_eq = equilibrium_time(
+        prob_dist,
+        eps=0.0003,
+        min_t=1000,
+        persistence=100
+    )
+
+    results[delta] = {
+        "prob_dist": prob_dist,
+        "t_eq": t_eq
+    }
+
+    print(f"δ = {delta}: equilibrium at t = {t_eq}")
+
+for delta, res in results.items():
+    prob_dist = res["prob_dist"]
+
+    plt.figure(figsize=(12, 6))
+    for i, js in enumerate(joint_strats):
+        plt.plot(prob_dist[:, i], label=f"{js[0]}, {js[1]}")
+
+    plt.xlabel("Round")
+    plt.ylabel("Probability")
+    plt.title(f"Joint strategy distribution (δ = {delta})")
+    plt.legend(ncol=3, fontsize=8)
+    plt.tight_layout()
+    plt.show()
 
 
 
