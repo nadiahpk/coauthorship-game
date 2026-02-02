@@ -3,7 +3,7 @@ import itertools
 import random
 import matplotlib.pyplot as plt
 
-# Game payoffs
+'''# Game payoffs
 U1 = {
     (1,1): 3, (1,0): 0,
     (0,1): 5, (0,0): 1
@@ -12,7 +12,19 @@ U1 = {
 U2 = {
     (1,1): 3, (0,1): 0,
     (1,0): 5, (0,0): 1
+}'''
+
+# Game payoffs
+U1 = {
+    (1,1): 5, (1,0): 1,
+    (0,1): 4, (0,0): 2
 }
+
+U2 = {
+    (1,1): 5, (0,1): 4,
+    (1,0): 1, (0,0): 2
+}
+
 
 #### Strategies
 strategies = {
@@ -20,6 +32,14 @@ strategies = {
     "ALLD": np.array([0, 0, 0, 0]),
     "PAVLOV": np.array([1, 0, 0, 1]) # pavlov c and d the same in this context
 }
+def strat_name_from_vec(vec):
+    for name, v in strategies.items():
+        if np.array_equal(vec, v):
+            return name
+    raise ValueError("Unknown strategy vector")
+joint_strats = list(itertools.product(strategies.keys(), repeat=2))
+joint_index = {js: i for i, js in enumerate(joint_strats)}
+
 
 # introspection strength
 delta = 2.0  
@@ -29,8 +49,27 @@ states = [(1,1), (1,0), (0,1), (0,0)]  # CC, CD, DC, DD
 state_index = {s: i for i, s in enumerate(states)}
 
 # Starting Strategies of both players
-p1_strat = strategies["ALLD"]
+p1_strat = strategies["ALLC"]
 p2_strat = strategies["ALLC"]
+
+
+def equilibrium_time(prob_dist, eps, min_t, persistence):
+    # checks if current prob dis is ~= previous prob dis and makes sure stable for no. of rounds declared in persistence. 
+    # Epsilon is amount of reasonable noise allowed
+    stable = 0
+
+    for t in range(min_t, len(prob_dist) - 1):
+        if np.linalg.norm(prob_dist[t+1] - prob_dist[t], ord=1) < eps:
+            stable += 1
+            if stable >= persistence:
+                return t - persistence + 1
+        else:
+            stable = 0
+
+    return None
+
+
+
 
 def checkstrat ():
     ### Compares strategies between two current players
@@ -110,7 +149,7 @@ def markov_matrix(p1, p2):
 
 
 
-def play_game(rounds, epsilon=0.0): # play around with epsilon try 0.01
+def play_game(rounds, epsilon):
     global p1_strat, p2_strat
     a1, a2 = 1, 1  # start CC (try 16 combos or try random a couple of times)
     history_states = []
@@ -120,6 +159,10 @@ def play_game(rounds, epsilon=0.0): # play around with epsilon try 0.01
     # To record strategy history
     p1_strat_hist = []
     p2_strat_hist = []
+
+    # Probability Distribution for joint strategies
+    joint_counts = np.zeros(len(joint_strats))
+    prob_dist_stratpairs = []
 
     for t in range(rounds):
         
@@ -141,15 +184,24 @@ def play_game(rounds, epsilon=0.0): # play around with epsilon try 0.01
         p1_strat_hist.append(p1_strat.copy())
         p2_strat_hist.append(p2_strat.copy())
 
-        # Randomly decide to check strat around 1/3 of the time
-        revision_draw = np.random.rand()
-        if revision_draw < 1/3: # SHOULD BE INTROSPECTING EVERY GAME
-            p1_strat, p2_strat = checkstrat()
+        # Record joint-strats and calculate prob_dist for this round
+        current_joint_strat = (
+            strat_name_from_vec(p1_strat),
+            strat_name_from_vec(p2_strat)
+        )
+        joint_counts[joint_index[current_joint_strat]] += 1
 
-    return p1_history, p2_history, p1_strat_hist, p2_strat_hist
+        prob_dist_stratpairs.append(
+            joint_counts / (t + 1)
+        )
+
+        # Introspect at the end of each round
+        p1_strat, p2_strat = checkstrat()
+
+    return (p1_history,p2_history,p1_strat_hist,p2_strat_hist,np.array(prob_dist_stratpairs))
 
 
-p1_hist, p2_hist, _, _ = play_game(rounds=500)
+'''p1_hist, p2_hist, _, _, _ = play_game(rounds=500)
 
 plt.plot(p1_hist, label="P1 actions")
 plt.plot(p2_hist, label="P2 actions")
@@ -157,14 +209,43 @@ plt.xlabel("Round")
 plt.ylabel("Action (1=C, 0=D)")
 plt.legend()
 plt.title("Actions over time")
+plt.show()'''
+
+(
+    p1_hist,
+    p2_hist,
+    _,
+    _,
+    prob_dist
+) = play_game(rounds=10000, epsilon=0.01)
+
+t_eq = equilibrium_time(prob_dist, eps=0.0003, min_t=1000, persistence=100) # from eyesight 0.0004 seems the best error value
+print(f"Learning equilibrium reached at round t = {t_eq}")
+
+plt.figure(figsize=(12,6))
+for i, js in enumerate(joint_strats):
+    plt.plot(prob_dist[:, i], label=f"{js[0]}, {js[1]}")
+
+plt.xlabel("Round")
+plt.ylabel("Probability")
+plt.title("Joint strategy probability distribution over gameplay")
+plt.legend(ncol=3, fontsize=8)
+plt.tight_layout()
 plt.show()
+
+
+
+
+
+
 
 
 ### TO DO
 # Plot change in strats over games (strat distribution) - 3 graphs (epsilon, delta constant; testing epsilon, testing deltas)
-# find equilibrium time (no. of games to stabilise) slice that time and check for introspection strenght and probabilities
-# Should be introspecting every time
+# find equilibrium time (no. of games to stabilise) slice that time and check for introspection strength and probabilities
 # Test for different values of epsilon in implementation error
 # Try running the game with different start values (either randomly or 16 combinations)
 # Check random range for checking p_switch
-# Check pavlov state
+
+
+
