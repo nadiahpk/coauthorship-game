@@ -45,9 +45,6 @@ joint_index = {js: i for i, js in enumerate(joint_strats)}
 states = [(1,1), (1,0), (0,1), (0,0)]  # CC, CD, DC, DD
 state_index = {s: i for i, s in enumerate(states)}
 
-# Starting Strategies of both players
-p1_strat = strategies["ALLC"]
-p2_strat = strategies["ALLC"]
 
 
 def equilibrium_time(prob_dist, eps, min_t, persistence):
@@ -68,10 +65,10 @@ def equilibrium_time(prob_dist, eps, min_t, persistence):
 
 
 
-def checkstrat ():
+def checkstrat (p1_strat, p2_strat):
     ### Compares strategies between two current players
 
-    global p1_strat, p2_strat, strategies
+    global strategies
     available_strats = list(strategies.keys())
 
     # pick learner
@@ -134,8 +131,11 @@ def markov_matrix(p1, p2):
     M = np.zeros((4,4))
 
     for i, (a1_prev, a2_prev) in enumerate(states):
-        p1c = p1[i] # prob p1 cooperates given previous round
-        p2c = p2[i] # prob p2 cooperates given previous round
+        # prob p1 cooperates given previous round
+        p1c = p1[i]
+        # prob p2 cooperates given previous round
+        j = state_index[(a2_prev, a1_prev)]
+        p2c = p2[j]
 
         M[i, state_index[(1,1)]] = p1c * p2c
         M[i, state_index[(1,0)]] = p1c * (1 - p2c)
@@ -147,7 +147,9 @@ def markov_matrix(p1, p2):
 
 
 def play_game(rounds, epsilon, delta):
-    global p1_strat, p2_strat
+    # Starting Strategies of both players
+    p1_strat = strategies["ALLD"]
+    p2_strat = strategies["ALLC"]
     a1, a2 = 1, 1  # start CC (try 16 combos or try random a couple of times)
     history_states = []
     # To record action history
@@ -193,7 +195,7 @@ def play_game(rounds, epsilon, delta):
         )
 
         # Introspect at the end of each round
-        p1_strat, p2_strat = checkstrat()
+        p1_strat, p2_strat = checkstrat(p1_strat, p2_strat)
 
     return (p1_history,p2_history,p1_strat_hist,p2_strat_hist,np.array(prob_dist_stratpairs))
 
@@ -286,6 +288,7 @@ for delta, res in results.items():
 # Test for different values of epsilon in implementation error
 # Try running the game with different start values (either randomly or 16 combinations)
 # Check random range for checking p_switch
+# Set a random seed
 
 
 
